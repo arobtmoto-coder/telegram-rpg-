@@ -9,7 +9,10 @@ initial-scale=1.0,
 maximum-scale=1.0,
 user-scalable=no">
 
-<title>Element RPG</title>
+<title>Element RPG - Telegram WebApp</title>
+
+<!-- Telegram Web App SDK Integration -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
 
@@ -236,8 +239,6 @@ html,body{
     pointer-events:none;
 }
 
-
-
 /* ===== PHOTO-INSPIRED RPG UI ===== */
 #hud{position:fixed;top:10px;left:12px;right:12px;padding:8px 10px 7px;background:rgba(9,10,14,.78);border:1px solid rgba(255,255,255,.08);border-radius:14px;color:#fff;z-index:10;box-shadow:0 5px 20px rgba(0,0,0,.35);backdrop-filter:blur(4px)}
 .gameTop{display:grid;grid-template-columns:28px 1fr 52px 62px;gap:7px;align-items:center}.stageNo{font-size:18px;font-weight:1000;text-align:center;font-style:italic}.progressWrap{min-width:0}.stageProgress{height:9px;background:#0d0e12;border:1px solid #2d2e35;border-radius:8px;overflow:hidden}.stageProgress>div{height:100%;width:18%;background:linear-gradient(90deg,#79b900,#d5ec21);box-shadow:0 0 7px rgba(180,230,0,.5)}.slotRow{display:flex;gap:4px;margin-top:4px;height:23px;overflow:hidden}.skillSlot{width:23px;height:23px;flex:0 0 23px;border-radius:5px;background:rgba(20,20,26,.85);border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:14px}.skillSlot.active{box-shadow:0 0 0 1px #facc15,0 0 7px rgba(250,204,21,.35)}.timer{font-size:17px;font-weight:1000;text-align:center}.counterBox{font-size:12px;font-weight:900;line-height:1.45;text-align:right}.counterBox span{display:inline-block;min-width:20px}.barTitle,.bar,#hpBar,#xpBar{display:none}
@@ -252,7 +253,6 @@ html,body{
 .bookContent{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,94vw);max-height:90vh;overflow:auto;text-align:center;color:#fff}.bookTitle{font-size:24px;font-weight:1000}.recipe{font-size:22px;padding:8px;border-bottom:1px solid rgba(255,255,255,.12)}
 @media(max-width:430px){.gameTop{grid-template-columns:22px 1fr 43px 57px}.stageNo{font-size:15px}.timer{font-size:16px}.counterBox{font-size:11px}.skillCard{min-height:405px;border-radius:15px 15px 30px 30px}.cardName{font-size:13px}.cardIcon{height:105px;font-size:57px}.cardBody{padding:14px 5px}.cardDesc{font-size:11px}.cardMeta,.cardEvolution{font-size:9px}.choiceButtons{gap:65px}.choiceButtons button{font-size:14px;padding:9px 13px}}
 
-/* Invisible joystick: touch controls stay active without showing the circle. */
 #game { touch-action:none; }
 
 </style>
@@ -307,112 +307,88 @@ html,body{
 <div id="message"></div>
 
 <script>
-
 "use strict";
 
-
-/* =========================
-   CANVAS
-========================= */
-
-const canvas =
-document.getElementById("game");
-
-const ctx =
-canvas.getContext("2d");
-
-let W=0;
-let H=0;
-
-function resize(){
-
-    W=window.innerWidth;
-    H=window.innerHeight;
-
-    canvas.width=W;
-    canvas.height=H;
-
-    if(player.x===0){
-
-        player.x= W/2; player.y= 500;
-    }
+// Telegram WebApp Initialization
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if(tg){
+    tg.ready();
+    tg.expand();
 }
 
-window.addEventListener(
-    "resize",
-    resize
-);
+/* =========================
+   CANVAS & WORLD
+========================= */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
+let W = 0, H = 0;
+const WORLD_W = 2600;
+const WORLD_H = 4200;
+
+let camera = { x: 0, y: 0 };
+
+function updateCamera(){
+    camera.x = Math.max(0, Math.min(WORLD_W - W, player.x - W/2));
+    camera.y = Math.max(0, Math.min(WORLD_H - H, player.y - H/2));
+}
+
+function resize(){
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+
+    if(player.x === 0){
+        player.x = WORLD_W / 2;
+        player.y = WORLD_H / 2;
+    }
+    updateCamera();
+}
+
+window.addEventListener("resize", resize);
 
 /* =========================
    PLAYER
 ========================= */
-
-const player={
-
-    x:0,
-    y:0,
-
-    speed:4,
-
-    hp:100,
-    maxHp:100,
-
-    lastDamage:0,
-    damageCooldown:700,
-    dead:false,
-
-    level:1,
-    xp:0,
-
-    coins:0,
-
-    attack:15,
-
-    lastAttack:0,
-
-    facingX:1,
-    facingY:0
+const player = {
+    x: 0, y: 0,
+    speed: 4,
+    hp: 100, maxHp: 100,
+    lastDamage: 0, damageCooldown: 700, dead: false,
+    level: 1, xp: 0, coins: 0,
+    attack: 15, lastAttack: 0,
+    facingX: 1, facingY: 0
 };
-
 
 /* =========================
    GAME DATA
 ========================= */
+let stage = 1;
+let gameStartTime = performance.now();
+let freeUses = 2;
+let kills = 0;
 
-let stage=1;
-let gameStartTime=performance.now();
-let freeUses=2;
+let monsters = [];
+let projectiles = [];
+let effects = [];
+let particles = [];
+let texts = [];
 
-let kills=0;
-
-let monsters=[];
-
-let projectiles=[];
-
-let effects=[];
-
-let particles=[];
-
-let texts=[];
-
-let selectedSkill=null;
-
-let skillCooldowns={};
-let ownedSkills={};
-let passiveStats={crit:0,attack:0,maxHp:0,regen:0,haste:0};
-let xpGems=[];
-let pickupCard={active:true,x:0,y:0,pulse:0};
-let choiceOpen=false;
-let choiceReason="card";
-let choiceOptions=[];
-
+let selectedSkill = null;
+let skillCooldowns = {};
+let ownedSkills = {};
+let passiveStats = {crit:0, attack:0, maxHp:0, regen:0, haste:0};
+let xpGems = [];
+let pickupCard = {active:true, x: WORLD_W/2, y: WORLD_H/2 - 115, pulse:0};
+let choiceOpen = false;
+let choiceReason = "card";
+let choiceOptions = [];
 
 /* =========================
-   SKILLS
+   SKILLS DATA
 ========================= */
-
-const skillData={
+const skillData = {
 fireball:{level:1,damage:30,cooldown:1000,type:"projectile",color:"#ff5a1f",speed:8,icon:"🔥",name:"Fireball",desc:"Shoots a blazing fireball.",evolve:"Damage +25%"},
 water:{level:2,damage:35,cooldown:1200,type:"projectile",color:"#38bdf8",speed:9,icon:"💧",name:"Water Bolt",desc:"Fires a fast water bolt.",evolve:"Speed +20%"},
 ice:{level:3,damage:40,cooldown:1300,type:"projectile",color:"#bae6fd",speed:8,icon:"❄️",name:"Ice Shard",desc:"Freezes the target briefly.",evolve:"Longer freeze"},
@@ -432,1810 +408,835 @@ haste:{level:3,type:"passive",icon:"⏱️",name:"Haste",desc:"Skill cooldown -8
 regen:{level:4,type:"passive",icon:"💚",name:"Recovery",desc:"Regenerate 1 HP every 2 sec.",evolve:"Regeneration +1 HP"}
 };
 
-
-
-/* =========================
-   LARGE WORLD + CAMERA
-========================= */
-const WORLD_W = 2600;
-const WORLD_H = 4200;
-
-let camera = {
-    x: 0,
-    y: 0
-};
-
-function updateCamera(){
-    camera.x = Math.max(0, Math.min(WORLD_W - W, player.x - W/2));
-    camera.y = Math.max(0, Math.min(WORLD_H - H, player.y - H/2));
-}
-
 /* =========================
    JOYSTICK
 ========================= */
+let joy = { active: false, startX: 0, startY: 0, x: 0, y: 0, radius: 60 };
 
-let joy={
-
-    active:false,
-
-    startX:0,
-    startY:0,
-
-    x:0,
-    y:0,
-
-    radius:60
-};
-
-
-canvas.addEventListener(
-"pointerdown",
-e=>{
-
-    joy.active=true;
-
-    joy.startX=e.clientX;
-    joy.startY=e.clientY;
-
-    joy.x=0;
-    joy.y=0;
-
+canvas.addEventListener("pointerdown", e => {
+    joy.active = true;
+    joy.startX = e.clientX;
+    joy.startY = e.clientY;
+    joy.x = 0; joy.y = 0;
 });
 
-
-canvas.addEventListener(
-"pointermove",
-e=>{
-
-    if(!joy.active)
-        return;
-
-    let dx=
-    e.clientX-joy.startX;
-
-    let dy=
-    e.clientY-joy.startY;
-
-    let d=
-    Math.hypot(dx,dy);
-
-    if(d>joy.radius){
-
-        dx=
-        dx/d*
-        joy.radius;
-
-        dy=
-        dy/d*
-        joy.radius;
+canvas.addEventListener("pointermove", e => {
+    if(!joy.active) return;
+    let dx = e.clientX - joy.startX;
+    let dy = e.clientY - joy.startY;
+    let d = Math.hypot(dx, dy);
+    if(d > joy.radius){
+        dx = dx / d * joy.radius;
+        dy = dy / d * joy.radius;
     }
-
-    joy.x=
-    dx/joy.radius;
-
-    joy.y=
-    dy/joy.radius;
-
+    joy.x = dx / joy.radius;
+    joy.y = dy / joy.radius;
 });
 
-
-function stopJoy(){
-
-    joy.active=false;
-
-    joy.x=0;
-    joy.y=0;
-}
-
-
-canvas.addEventListener(
-"pointerup",
-stopJoy
-);
-
-canvas.addEventListener(
-"pointercancel",
-stopJoy
-);
-
+function stopJoy(){ joy.active = false; joy.x = 0; joy.y = 0; }
+canvas.addEventListener("pointerup", stopJoy);
+canvas.addEventListener("pointercancel", stopJoy);
 
 /* =========================
-   PLAYER MOVEMENT
+   MOVEMENT & CAMERA
 ========================= */
-
 function movePlayer(){
-
     if(player.dead || choiceOpen) return;
+    let dx = joy.x, dy = joy.y;
+    let len = Math.hypot(dx, dy);
 
-    let dx=joy.x;
-    let dy=joy.y;
-
-    let len=
-    Math.hypot(dx,dy);
-
-    if(len>0){
-
-        dx/=len;
-        dy/=len;
-
-        player.x+=
-        dx*player.speed;
-
-        player.y+=
-        dy*player.speed;
-
-        player.facingX=dx;
-        player.facingY=dy;
+    if(len > 0){
+        dx /= len; dy /= len;
+        player.x += dx * player.speed;
+        player.y += dy * player.speed;
+        player.facingX = dx;
+        player.facingY = dy;
     }
 
-    player.x=
-    Math.max(
-        30,
-        Math.min(
-            WORLD_W-30,
-            player.x
-        )
-    );
-
-    player.y=
-    Math.max(
-        120,
-        Math.min(
-            WORLD_H-40,
-            player.y
-        )
-    );
-
+    player.x = Math.max(30, Math.min(WORLD_W - 30, player.x));
+    player.y = Math.max(120, Math.min(WORLD_H - 40, player.y));
     updateCamera();
 }
-
 
 /* =========================
    MONSTERS
 ========================= */
-
 function createMonster(){
-
-    let types=[
-
-        {
-            color:"#22c55e",
-            hp:50,
-            speed:.8,
-            radius:22
-        },
-
-        {
-            color:"#ef4444",
-            hp:70,
-            speed:.65,
-            radius:24
-        },
-
-        {
-            color:"#9333ea",
-            hp:100,
-            speed:.5,
-            radius:27
-        }
-
+    let types = [
+        { color:"#22c55e", hp:50, speed:.8, radius:22 },
+        { color:"#ef4444", hp:70, speed:.65, radius:24 },
+        { color:"#9333ea", hp:100, speed:.5, radius:27 }
     ];
+    let t = types[Math.floor(Math.random()*types.length)];
+    let x, y;
 
-    let t=
-    types[
-        Math.floor(
-            Math.random()*
-            types.length
-        )
-    ];
+    do {
+        x = 40 + Math.random() * (WORLD_W - 80);
+        y = 130 + Math.random() * (WORLD_H - 170);
+    } while(Math.hypot(x - player.x, y - player.y) < 200);
 
-    let x,y;
-
-    do{
-
-        x=
-        40+
-        Math.random()*
-        (WORLD_W-80);
-
-        y=
-        130+
-        Math.random()*
-        (WORLD_H-170);
-
-    }while(
-        Math.hypot(
-            x-player.x,
-            y-player.y
-        )<200
-    );
-
-    let hp=
-    t.hp+
-    (stage-1)*15;
-
+    let hp = t.hp + (stage - 1) * 15;
     monsters.push({
-
-        x:x,
-        y:y,
-
-        radius:t.radius,
-
-        color:t.color,
-
-        type:
-        t.color==="#22c55e" ? "goblin" :
-        t.color==="#ef4444" ? "brute" : "mage",
-
-        hp:hp,
-
-        maxHp:hp,
-
-        speed:
-        t.speed+
-        stage*.02,
-
-        frozen:0,
-
-        flash:0,
-
-        lastAttack:0
+        x: x, y: y, radius: t.radius, color: t.color,
+        type: t.color==="#22c55e" ? "goblin" : t.color==="#ef4444" ? "brute" : "mage",
+        hp: hp, maxHp: hp, speed: t.speed + stage*.02,
+        frozen: 0, flash: 0, lastAttack: 0
     });
 }
 
-
 function maintainMonsters(){
-
     if(player.dead || choiceOpen) return;
-
-    let wanted=
-    Math.min(
-        4+stage,
-        9
-    );
-
-    while(
-        monsters.length<
-        wanted
-    ){
-
-        createMonster();
-    }
+    let wanted = Math.min(4 + stage, 9);
+    while(monsters.length < wanted) createMonster();
 }
-
-
-/* =========================
-   MONSTER MOVEMENT
-========================= */
 
 function moveMonsters(){
-
     if(player.dead || choiceOpen) return;
-
     for(const m of monsters){
+        if(m.flash > 0) m.flash--;
+        if(m.frozen > 0){ m.frozen--; continue; }
 
-        if(m.flash>0) m.flash--;
+        let dx = player.x - m.x;
+        let dy = player.y - m.y;
+        let d = Math.hypot(dx, dy);
 
-        if(m.frozen>0){
-            m.frozen--;
-            continue;
-        }
-
-        let dx=player.x-m.x;
-        let dy=player.y-m.y;
-        let d=Math.hypot(dx,dy);
-
-        if(d>60){
-            if(d>0){
-                m.x+=dx/d*m.speed;
-                m.y+=dy/d*m.speed;
+        if(d > 60){
+            if(d > 0){
+                m.x += dx/d * m.speed;
+                m.y += dy/d * m.speed;
             }
-        }else{
-            let now=performance.now();
-            if(now-m.lastAttack>=900){
-                m.lastAttack=now;
-                damagePlayer(8,m);
+        } else {
+            let now = performance.now();
+            if(now - m.lastAttack >= 900){
+                m.lastAttack = now;
+                damagePlayer(8, m);
             }
         }
     }
 }
 
-
 /* =========================
-   PLAYER DAMAGE
+   PLAYER DAMAGE & GAME OVER
 ========================= */
-
-function damagePlayer(damage,monster){
-
+function damagePlayer(damage, monster){
     if(player.dead) return;
+    player.hp -= damage;
+    if(player.hp < 0) player.hp = 0;
 
-    player.hp-=damage;
-    if(player.hp<0) player.hp=0;
-
-    createParticles(player.x,player.y,"#ef4444",10);
-    damageText(player.x,player.y-45,damage,"#ff5555");
+    createParticles(player.x, player.y, "#ef4444", 10);
+    damageText(player.x, player.y - 45, damage, "#ff5555");
 
     if(monster){
-        let dx=player.x-monster.x;
-        let dy=player.y-monster.y;
-        let d=Math.hypot(dx,dy);
-        if(d>0){
-            player.x+=dx/d*5;
-            player.y+=dy/d*5;
-        }
+        let dx = player.x - monster.x;
+        let dy = player.y - monster.y;
+        let d = Math.hypot(dx, dy);
+        if(d > 0){ player.x += dx/d * 5; player.y += dy/d * 5; }
     }
 
-    if(player.hp<=0){
-        player.dead=true;
+    if(player.hp <= 0){
+        player.dead = true;
         showGameOver();
     }
 }
 
 function showGameOver(){
-    const box=document.getElementById("message");
-    box.innerHTML='💀 GAME OVER<br><br><button onclick="restartGame()" style="padding:12px 25px;border:0;border-radius:10px;font-weight:bold;cursor:pointer">RESTART</button>';
-    box.style.opacity=1;
-    box.style.pointerEvents="auto";
+    // Telegram Send Data Integration
+    if(tg && tg.sendData){
+        tg.sendData(JSON.stringify({
+            score: player.coins,
+            stage: stage,
+            kills: kills
+        }));
+    }
+
+    const box = document.getElementById("message");
+    box.innerHTML = '💀 GAME OVER<br><br><button onclick="restartGame()" style="padding:12px 25px;border:0;border-radius:10px;font-weight:bold;cursor:pointer">RESTART</button>';
+    box.style.opacity = 1;
+    box.style.pointerEvents = "auto";
 }
 
 function restartGame(){
-player.x=W/2; player.y=500;player.hp=100;player.maxHp=100;player.dead=false;player.level=1;player.xp=0;player.coins=0;player.attack=15;player.lastAttack=0;player.lastDamage=0;player.facingX=1;player.facingY=0;
-stage=1;kills=0;gameStartTime=performance.now();freeUses=2;selectedSkill=null;skillCooldowns={};ownedSkills={};passiveStats={crit:0,attack:0,maxHp:0,regen:0,haste:0};xpGems=[];choiceOpen=false;
-pickupCard={active:true,x:W/2,y:H/2-115,pulse:0};
-monsters=[];projectiles=[];effects=[];particles=[];texts=[];
-document.getElementById("skillPanel").style.display="none";document.getElementById("choiceOverlay").style.display="none";document.getElementById("bookOverlay").style.display="none";
-const box=document.getElementById("message");box.innerHTML="";box.style.opacity=0;box.style.pointerEvents="none";
-for(let i=0;i<5;i++)createMonster();updateSkillUI();updateHUD();requestAnimationFrame(gameLoop);
+    player.x = WORLD_W/2; player.y = WORLD_H/2;
+    player.hp = 100; player.maxHp = 100; player.dead = false;
+    player.level = 1; player.xp = 0; player.coins = 0; player.attack = 15;
+    player.lastAttack = 0; player.lastDamage = 0; player.facingX = 1; player.facingY = 0;
+
+    stage = 1; kills = 0; gameStartTime = performance.now(); freeUses = 2;
+    selectedSkill = null; skillCooldowns = {}; ownedSkills = {};
+    passiveStats = {crit:0, attack:0, maxHp:0, regen:0, haste:0};
+    xpGems = []; choiceOpen = false;
+    pickupCard = {active:true, x: WORLD_W/2, y: WORLD_H/2 - 115, pulse:0};
+    
+    monsters = []; projectiles = []; effects = []; particles = []; texts = [];
+    document.getElementById("skillPanel").style.display = "none";
+    document.getElementById("choiceOverlay").style.display = "none";
+    document.getElementById("bookOverlay").style.display = "none";
+
+    const box = document.getElementById("message");
+    box.innerHTML = ""; box.style.opacity = 0; box.style.pointerEvents = "none";
+
+    for(let i=0; i<5; i++) createMonster();
+    updateSkillUI(); updateHUD();
+    requestAnimationFrame(gameLoop);
 }
 
-
 /* =========================
-   NORMAL ATTACK
+   ATTACKS & SKILLS
 ========================= */
-
 function autoAttack(){
-
     if(player.dead || choiceOpen) return;
+    let now = performance.now();
+    if(now - player.lastAttack < 650) return;
 
-    let now=
-    performance.now();
-
-    if(
-        now-player.lastAttack<
-        650
-    )
-        return;
-
-    let target=null;
-
-    let closest=99999;
-
-    for(
-        const m of monsters
-    ){
-
-        let d=
-        Math.hypot(
-            m.x-player.x,
-            m.y-player.y
-        );
-
-        if(
-            d<85 &&
-            d<closest
-        ){
-
-            closest=d;
-            target=m;
-        }
+    let target = null, closest = 99999;
+    for(const m of monsters){
+        let d = Math.hypot(m.x - player.x, m.y - player.y);
+        if(d < 85 && d < closest){ closest = d; target = m; }
     }
+    if(!target) return;
 
-    if(!target)
-        return;
-
-    player.lastAttack=now;
-
-    hitMonster(
-        target,
-        player.attack,
-        "#ffffff"
-    );
+    player.lastAttack = now;
+    hitMonster(target, player.attack, "#ffffff");
 }
 
+function hitMonster(monster, damage, color){
+    let finalDamage = damage;
+    if(Math.random() < Math.min(.75, (passiveStats.crit||0)/100)){
+        finalDamage = Math.round(finalDamage * 2);
+        damageText(monster.x, monster.y - 50, "CRIT! " + finalDamage, "#facc15");
+    }
+    monster.hp -= finalDamage; monster.flash = 8;
+    createParticles(monster.x, monster.y, color, 8);
+    damageText(monster.x, monster.y - 30, finalDamage, color);
 
-/* =========================
-   DAMAGE MONSTER
-========================= */
-
-function hitMonster(monster,damage,color){
-let finalDamage=damage;
-if(Math.random()<Math.min(.75,(passiveStats.crit||0)/100)){
-finalDamage=Math.round(finalDamage*2);
-damageText(monster.x,monster.y-50,"CRIT! "+finalDamage,"#facc15");
+    if(monster.hp <= 0){
+        let index = monsters.indexOf(monster);
+        if(index !== -1) monsters.splice(index, 1);
+        player.coins += 5; kills++;
+        for(let i=0; i < 2 + Math.floor(Math.random()*3); i++){
+            xpGems.push({
+                x: monster.x + (Math.random() - .5)*55,
+                y: monster.y + (Math.random() - .5)*55,
+                value: 10, life: 900, spin: Math.random()*6.28
+            });
+        }
+        createParticles(monster.x, monster.y, "#84cc16", 12);
+        if(kills >= 5 + stage*2){ kills = 0; stage++; showMessage("🏆 STAGE " + stage); }
+        levelCheck();
+    }
 }
-monster.hp-=finalDamage; monster.flash=8;
-createParticles(monster.x,monster.y,color,8);
-damageText(monster.x,monster.y-30,finalDamage,color);
-if(monster.hp<=0){
-let index=monsters.indexOf(monster); if(index!==-1) monsters.splice(index,1);
-player.coins+=5; kills++;
-for(let i=0;i<2+Math.floor(Math.random()*3);i++) xpGems.push({x:monster.x+(Math.random()-.5)*55,y:monster.y+(Math.random()-.5)*55,value:10,life:900,spin:Math.random()*6.28});
-createParticles(monster.x,monster.y,"#84cc16",12);
-if(kills>=5+stage*2){kills=0;stage++;showMessage("🏆 STAGE "+stage);}
-levelCheck();
-}
-}
-
-
-/* =========================
-   LEVEL
-========================= */
 
 function levelCheck(){
-let required=player.level*100;
-while(player.xp>=required){
-player.xp-=required; player.level++;
-player.attack+=5; player.maxHp+=15; player.hp=player.maxHp;
-showMessage("⭐ LEVEL "+player.level+"!");
-if(player.level>=2) openSkillChoice("level");
-required=player.level*100;
+    let required = player.level * 100;
+    while(player.xp >= required){
+        player.xp -= required; player.level++;
+        player.attack += 5; player.maxHp += 15; player.hp = player.maxHp;
+        showMessage("⭐ LEVEL " + player.level + "!");
+        if(player.level >= 2) openSkillChoice("level");
+        required = player.level * 100;
+    }
+    updateSkillUI();
 }
-updateSkillUI();
-}
 
-
-/* =========================
-   SKILL SELECTION
-========================= */
-
-function getSkillName(name){return skillData[name]?.name||name;}
-function getSkillRank(name){return ownedSkills[name]||0;}
-function skillRankText(rank){return "●".repeat(Math.min(rank,3))+"○".repeat(Math.max(0,3-Math.min(rank,3)));}
+function getSkillName(name){ return skillData[name]?.name || name; }
+function getSkillRank(name){ return ownedSkills[name] || 0; }
+function skillRankText(rank){ return "●".repeat(Math.min(rank,3)) + "○".repeat(Math.max(0,3-Math.min(rank,3))); }
 
 function applyPassive(name){
-let r=ownedSkills[name]||1;
-if(name==="crit") passiveStats.crit=10*r;
-if(name==="power") passiveStats.attack=12*r;
-if(name==="vitality") passiveStats.maxHp=20+25*(r-1);
-if(name==="haste") passiveStats.haste=8+6*(r-1);
-if(name==="regen") passiveStats.regen=r;
-player.attack=Math.round((15+(player.level-1)*5)*(1+passiveStats.attack/100));
-player.maxHp=100+(player.level-1)*15+passiveStats.maxHp;
-if(player.hp>player.maxHp) player.hp=player.maxHp;
+    let r = ownedSkills[name] || 1;
+    if(name === "crit") passiveStats.crit = 10 * r;
+    if(name === "power") passiveStats.attack = 12 * r;
+    if(name === "vitality") passiveStats.maxHp = 20 + 25 * (r - 1);
+    if(name === "haste") passiveStats.haste = 8 + 6 * (r - 1);
+    if(name === "regen") passiveStats.regen = r;
+    player.attack = Math.round((15 + (player.level - 1)*5) * (1 + passiveStats.attack/100));
+    player.maxHp = 100 + (player.level - 1)*15 + passiveStats.maxHp;
+    if(player.hp > player.maxHp) player.hp = player.maxHp;
 }
 
 function chooseSkill(name){
-if(!choiceOpen||!skillData[name]) return;
-const s=skillData[name], old=ownedSkills[name]||0;
-ownedSkills[name]=Math.min(3,old+1);
-if(s.type==="passive") applyPassive(name);
-else{
-if(old>0){s.damage=Math.round(s.damage*1.2);if(s.radius)s.radius=Math.round(s.radius*1.15);if(s.speed)s.speed*=1.08;}
-selectedSkill=name;
-}
-choiceOpen=false;
-document.getElementById("choiceOverlay").style.display="none";
-document.getElementById("choiceOverlay").setAttribute("aria-hidden","true");
-document.getElementById("activeSkillBadge").textContent=s.type==="passive"?"💠 PASSIVE: "+s.name+" Lv."+ownedSkills[name]:"⚡ ACTIVE: "+s.name+" Lv."+ownedSkills[name];
-showMessage((old?"⬆️ Evolved ":"✨ Equipped ")+s.name+" Lv."+ownedSkills[name]);
-updateSkillUI(); updateHUD();
+    if(!choiceOpen || !skillData[name]) return;
+    const s = skillData[name], old = ownedSkills[name] || 0;
+    ownedSkills[name] = Math.min(3, old + 1);
+    if(s.type === "passive") applyPassive(name);
+    else{
+        if(old > 0){
+            s.damage = Math.round(s.damage * 1.2);
+            if(s.radius) s.radius = Math.round(s.radius * 1.15);
+            if(s.speed) s.speed *= 1.08;
+        }
+        selectedSkill = name;
+    }
+    choiceOpen = false;
+    document.getElementById("choiceOverlay").style.display = "none";
+    document.getElementById("choiceOverlay").setAttribute("aria-hidden", "true");
+    document.getElementById("activeSkillBadge").textContent = s.type === "passive" ? "💠 PASSIVE: " + s.name + " Lv." + ownedSkills[name] : "⚡ ACTIVE: " + s.name + " Lv." + ownedSkills[name];
+    showMessage((old ? "⬆️ Evolved " : "✨ Equipped ") + s.name + " Lv." + ownedSkills[name]);
+    updateSkillUI(); updateHUD();
 }
 
 function randomChoicePool(){
-const available=Object.keys(skillData).filter(n=>player.level>=skillData[n].level&&(ownedSkills[n]||0)<3);
-let active=available.filter(n=>skillData[n].type!=="passive"), passive=available.filter(n=>skillData[n].type==="passive");
-let pool=[];
-if(active.length) pool.push(active[Math.floor(Math.random()*active.length)]);
-if(passive.length) pool.push(passive[Math.floor(Math.random()*passive.length)]);
-while(pool.length<3&&available.length){let n=available[Math.floor(Math.random()*available.length)];if(!pool.includes(n))pool.push(n);if(pool.length>=available.length)break;}
-while(pool.length<3)pool.push(available[Math.floor(Math.random()*available.length)]||"fireball");
-return pool;
+    const available = Object.keys(skillData).filter(n => player.level >= skillData[n].level && (ownedSkills[n] || 0) < 3);
+    let active = available.filter(n => skillData[n].type !== "passive"), passive = available.filter(n => skillData[n].type === "passive");
+    let pool = [];
+    if(active.length) pool.push(active[Math.floor(Math.random() * active.length)]);
+    if(passive.length) pool.push(passive[Math.floor(Math.random() * passive.length)]);
+    while(pool.length < 3 && available.length){
+        let n = available[Math.floor(Math.random() * available.length)];
+        if(!pool.includes(n)) pool.push(n);
+        if(pool.length >= available.length) break;
+    }
+    while(pool.length < 3) pool.push(available[Math.floor(Math.random() * available.length)] || "fireball");
+    return pool;
 }
 
 function renderSkillChoices(){
-const wrap=document.getElementById("choiceCards"); wrap.innerHTML="";
-choiceOptions.forEach(name=>{
-const s=skillData[name], rank=ownedSkills[name]||0, card=document.createElement("button");
-card.type="button"; card.className="skillCard "+(s.type==="passive"?"passive":"");
-card.innerHTML='<div class="cardRibbon">'+(rank?"EVOLVE":(s.type==="passive"?"PASSIVE":"ACTIVE"))+'</div><div class="cardName">'+s.name+'</div><div class="cardIcon">'+s.icon+'</div><div class="cardRankDots">'+skillRankText(Math.max(1,rank))+'</div><div class="cardBody"><div class="cardDesc">'+s.desc+'</div><div class="cardMeta">'+(rank?"Current Lv. "+rank:"New Skill")+'</div><div class="cardEvolution">✦ '+s.evolve+'</div></div>';
-card.onclick=()=>chooseSkill(name); wrap.appendChild(card);
-});
+    const wrap = document.getElementById("choiceCards"); wrap.innerHTML = "";
+    choiceOptions.forEach(name => {
+        const s = skillData[name], rank = ownedSkills[name] || 0, card = document.createElement("button");
+        card.type = "button"; card.className = "skillCard " + (s.type === "passive" ? "passive" : "");
+        card.innerHTML = '<div class="cardRibbon">' + (rank ? "EVOLVE" : (s.type === "passive" ? "PASSIVE" : "ACTIVE")) + '</div><div class="cardName">' + s.name + '</div><div class="cardIcon">' + s.icon + '</div><div class="cardRankDots">' + skillRankText(Math.max(1, rank)) + '</div><div class="cardBody"><div class="cardDesc">' + s.desc + '</div><div class="cardMeta">' + (rank ? "Current Lv. " + rank : "New Skill") + '</div><div class="cardEvolution">✦ ' + s.evolve + '</div></div>';
+        card.onclick = () => chooseSkill(name); wrap.appendChild(card);
+    });
 }
 
 function openSkillChoice(reason){
-if(player.dead)return;
-choiceReason=reason; choiceOptions=randomChoicePool(); renderSkillChoices(); document.getElementById("freeUses").textContent=freeUses;
-document.getElementById("choiceSub").textContent=reason==="card"?"GOLDEN CARD • NEW SKILL":"LEVEL UP • CHOOSE 1";
-document.getElementById("choiceOverlay").style.display="block";
-document.getElementById("choiceOverlay").setAttribute("aria-hidden","false");
-choiceOpen=true;
+    if(player.dead) return;
+    choiceReason = reason; choiceOptions = randomChoicePool(); renderSkillChoices();
+    document.getElementById("freeUses").textContent = freeUses;
+    document.getElementById("choiceSub").textContent = reason === "card" ? "GOLDEN CARD • NEW SKILL" : "LEVEL UP • CHOOSE 1";
+    document.getElementById("choiceOverlay").style.display = "block";
+    document.getElementById("choiceOverlay").setAttribute("aria-hidden", "false");
+    choiceOpen = true;
 }
-
-function selectSkill(name){
-if(player.level<skillData[name].level){showMessage("🔒 Unlock at Level "+skillData[name].level);return;}
-if(!choiceOpen){showMessage("Collect the golden card or level up to choose.");return;}
-chooseSkill(name);
-}
-
-
-/* =========================
-   USE SKILL
-========================= */
 
 function findNearest(){
-    let target=null;
-    let closest=Infinity;
+    let target = null, closest = Infinity;
     for(const m of monsters){
-        const d=Math.hypot(m.x-player.x,m.y-player.y);
-        if(d<closest){ closest=d; target=m; }
+        const d = Math.hypot(m.x - player.x, m.y - player.y);
+        if(d < closest){ closest = d; target = m; }
     }
     return target;
 }
 
 function castProjectile(s){
-    const target=findNearest();
+    const target = findNearest();
     if(!target) return false;
     projectiles.push({
-        x:player.x, y:player.y,
-        target:target,
-        damage:s.damage,
-        color:s.color,
-        speed:s.speed,
-        type:selectedSkill,
-        life:120
+        x: player.x, y: player.y, target: target,
+        damage: s.damage, color: s.color, speed: s.speed,
+        type: selectedSkill, life: 120
     });
     return true;
 }
 
 function useSkill(){
-if(!selectedSkill||player.dead||choiceOpen)return false;
-const s=skillData[selectedSkill]; if(!s||s.type==="passive")return false;
-let now=performance.now(), haste=passiveStats.haste||0;
-let cd=s.cooldown*(1-haste/100), last=skillCooldowns[selectedSkill]||0;
-if(now-last<cd||monsters.length===0)return false;
-if((s.type==="projectile"||s.type==="thunder")&&!findNearest())return false;
-skillCooldowns[selectedSkill]=now;
-if(s.type==="projectile")castProjectile(s);else if(s.type==="area")castArea(s);else if(s.type==="thunder")castThunder(s);
-return true;
+    if(!selectedSkill || player.dead || choiceOpen) return false;
+    const s = skillData[selectedSkill];
+    if(!s || s.type === "passive") return false;
+    let now = performance.now(), haste = passiveStats.haste || 0;
+    let cd = s.cooldown * (1 - haste/100), last = skillCooldowns[selectedSkill] || 0;
+    if(now - last < cd || monsters.length === 0) return false;
+    if((s.type === "projectile" || s.type === "thunder") && !findNearest()) return false;
+    skillCooldowns[selectedSkill] = now;
+    if(s.type === "projectile") castProjectile(s);
+    else if(s.type === "area") castArea(s);
+    else if(s.type === "thunder") castThunder(s);
+    return true;
 }
 
-function automaticSkill(){
-    if(!selectedSkill || player.dead) return;
-    useSkill();
-}
-
+function automaticSkill(){ if(selectedSkill && !player.dead) useSkill(); }
 
 /* =========================
-   PROJECTILE UPDATE
+   PROJECTILES, EFFECTS & PARTICLES
 ========================= */
-
 function updateProjectiles(){
+    for(let i = projectiles.length - 1; i >= 0; i--){
+        let p = projectiles[i];
+        if(!monsters.includes(p.target)){ projectiles.splice(i, 1); continue; }
 
-    for(
-        let i=
-        projectiles.length-1;
-        i>=0;
-        i--
-    ){
+        let dx = p.target.x - p.x;
+        let dy = p.target.y - p.y;
+        let d = Math.hypot(dx, dy);
 
-        let p=
-        projectiles[i];
+        createParticles(p.x, p.y, p.color, 1);
 
-        if(
-            !monsters.includes(
-                p.target
-            )
-        ){
-
-            projectiles.splice(i,1);
-
+        if(d < 15){
+            hitMonster(p.target, p.damage, p.color);
+            if(p.type === "ice") p.target.frozen = 100;
+            effects.push({ type: "impact", x: p.target.x, y: p.target.y, radius: 10, max: 45, color: p.color, life: 20 });
+            projectiles.splice(i, 1);
             continue;
         }
 
-        let dx=
-        p.target.x-p.x;
-
-        let dy=
-        p.target.y-p.y;
-
-        let d=
-        Math.hypot(dx,dy);
-
-        createParticles(
-            p.x,
-            p.y,
-            p.color,
-            1
-        );
-
-        if(d<15){
-
-            hitMonster(
-                p.target,
-                p.damage,
-                p.color
-            );
-
-            if(
-                p.type==="ice"
-            ){
-
-                p.target.frozen=
-                100;
-            }
-
-            effects.push({
-
-                type:"impact",
-
-                x:p.target.x,
-                y:p.target.y,
-
-                radius:10,
-
-                max:45,
-
-                color:p.color,
-
-                life:20
-            });
-
-            projectiles.splice(i,1);
-
-            continue;
-        }
-
-        p.x+=
-        dx/d*
-        p.speed;
-
-        p.y+=
-        dy/d*
-        p.speed;
-
+        p.x += dx / d * p.speed;
+        p.y += dy / d * p.speed;
         p.life--;
-
-        if(p.life<=0)
-            projectiles.splice(i,1);
+        if(p.life <= 0) projectiles.splice(i, 1);
     }
 }
-
-
-/* =========================
-   AREA SKILLS
-========================= */
 
 function castArea(s){
-
-    effects.push({
-
-        type:selectedSkill,
-
-        x:player.x,
-        y:player.y,
-
-        radius:10,
-
-        max:s.radius,
-
-        color:s.color,
-
-        life:45
-    });
-
-    for(
-        const m of [...monsters]
-    ){
-
-        let d=
-        Math.hypot(
-            m.x-player.x,
-            m.y-player.y
-        );
-
-        if(
-            d<=s.radius
-        ){
-
-            hitMonster(
-                m,
-                s.damage,
-                s.color
-            );
-
-            if(
-                selectedSkill===
-                "blizzard"
-            ){
-
-                m.frozen=150;
-            }
+    effects.push({ type: selectedSkill, x: player.x, y: player.y, radius: 10, max: s.radius, color: s.color, life: 45 });
+    for(const m of [...monsters]){
+        if(Math.hypot(m.x - player.x, m.y - player.y) <= s.radius){
+            hitMonster(m, s.damage, s.color);
+            if(selectedSkill === "blizzard") m.frozen = 150;
         }
     }
 }
 
-
-/* =========================
-   THUNDER
-========================= */
-
 function castThunder(s){
-
-    let target=
-    findNearest();
-
-    if(!target){
-
-        showMessage(
-            "No monster!"
-        );
-
-        return;
-    }
-
-    hitMonster(
-        target,
-        s.damage,
-        s.color
-    );
-
-    effects.push({
-
-        type:"thunder",
-
-        x:target.x,
-        y:target.y,
-
-        color:s.color,
-
-        life:25
-    });
+    let target = findNearest();
+    if(!target){ showMessage("No monster!"); return; }
+    hitMonster(target, s.damage, s.color);
+    effects.push({ type: "thunder", x: target.x, y: target.y, color: s.color, life: 25 });
 }
 
-
-/* =========================
-   PARTICLES
-========================= */
-
-function createParticles(
-    x,y,color,count
-){
-
-    for(
-        let i=0;
-        i<count;
-        i++
-    ){
-
-        let a=
-        Math.random()*
-        Math.PI*2;
-
-        let speed=
-        1+
-        Math.random()*4;
-
+function createParticles(x, y, color, count){
+    for(let i=0; i<count; i++){
+        let a = Math.random() * Math.PI * 2;
+        let speed = 1 + Math.random() * 4;
         particles.push({
-
-            x:x,
-            y:y,
-
-            vx:
-            Math.cos(a)*
-            speed,
-
-            vy:
-            Math.sin(a)*
-            speed,
-
-            life:
-            15+
-            Math.random()*25,
-
-            color:color
+            x: x, y: y,
+            vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
+            life: 15 + Math.random() * 25, color: color
         });
     }
 }
 
-
 function updateXpGems(){
-for(let i=xpGems.length-1;i>=0;i--){
-let g=xpGems[i]; g.life--; g.spin+=.12;
-let d=Math.hypot(g.x-player.x,g.y-player.y);
-if(d<90){g.x+=(player.x-g.x)*.14;g.y+=(player.y-g.y)*.14;}
-if(d<24){player.xp+=g.value;createParticles(g.x,g.y,"#84cc16",5);texts.push({x:g.x,y:g.y-12,text:"+"+g.value+" XP",color:"#bef264",life:30});xpGems.splice(i,1);levelCheck();continue;}
-if(g.life<=0)xpGems.splice(i,1);
+    for(let i = xpGems.length - 1; i >= 0; i--){
+        let g = xpGems[i]; g.life--; g.spin += .12;
+        let d = Math.hypot(g.x - player.x, g.y - player.y);
+        if(d < 90){ g.x += (player.x - g.x) * .14; g.y += (player.y - g.y) * .14; }
+        if(d < 24){
+            player.xp += g.value;
+            createParticles(g.x, g.y, "#84cc16", 5);
+            texts.push({x: g.x, y: g.y - 12, text: "+" + g.value + " XP", color: "#bef264", life: 30});
+            xpGems.splice(i, 1);
+            levelCheck();
+            continue;
+        }
+        if(g.life <= 0) xpGems.splice(i, 1);
+    }
+    if((passiveStats.regen || 0) > 0 && !player.dead){
+        if(!player._regenTick) player._regenTick = performance.now();
+        if(performance.now() - player._regenTick >= 2000){
+            player.hp = Math.min(player.maxHp, player.hp + passiveStats.regen);
+            player._regenTick = performance.now();
+        }
+    }
 }
-if((passiveStats.regen||0)>0&&!player.dead){if(!player._regenTick)player._regenTick=performance.now();if(performance.now()-player._regenTick>=2000){player.hp=Math.min(player.maxHp,player.hp+passiveStats.regen);player._regenTick=performance.now();}}
-}
+
 function drawXpGems(){
-for(const g of xpGems){
-ctx.save();ctx.translate(g.x,g.y);ctx.rotate(g.spin);ctx.shadowColor="#84cc16";ctx.shadowBlur=10;ctx.fillStyle="#84cc16";
-ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(6,0);ctx.lineTo(0,8);ctx.lineTo(-6,0);ctx.closePath();ctx.fill();
-ctx.fillStyle="#d9f99d";ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(3,0);ctx.lineTo(0,2);ctx.closePath();ctx.fill();ctx.restore();
+    for(const g of xpGems){
+        ctx.save();
+        ctx.translate(g.x - camera.x, g.y - camera.y);
+        ctx.rotate(g.spin); ctx.shadowColor = "#84cc16"; ctx.shadowBlur = 10; ctx.fillStyle = "#84cc16";
+        ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(6, 0); ctx.lineTo(0, 8); ctx.lineTo(-6, 0); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#d9f99d"; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(3, 0); ctx.lineTo(0, 2); ctx.closePath(); ctx.fill();
+        ctx.restore();
+    }
 }
-}
+
 function drawPickupCard(){
-if(!pickupCard.active||choiceOpen)return;
-let y=pickupCard.y+Math.sin(performance.now()/300)*5;
-ctx.save();
-// golden beam
-const beam=ctx.createLinearGradient(0,0,0,y-25);beam.addColorStop(0,"rgba(255,190,55,0)");beam.addColorStop(.55,"rgba(255,205,75,.18)");beam.addColorStop(1,"rgba(255,220,100,.65)");ctx.fillStyle=beam;ctx.fillRect(pickupCard.x-4,95,8,y-120);
-ctx.translate(pickupCard.x,y);ctx.shadowColor="rgba(255,203,55,.95)";ctx.shadowBlur=28;
-const grad=ctx.createLinearGradient(-22,-35,22,35);grad.addColorStop(0,"#fff2a0");grad.addColorStop(.35,"#ffd447");grad.addColorStop(1,"#a96c05");ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(-20,-32,40,64,6);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle="#fff7bf";ctx.lineWidth=2;ctx.stroke();
-ctx.fillStyle="#3f2a00";ctx.textAlign="center";ctx.font="bold 19px Arial";ctx.fillText("★",0,-7);ctx.font="bold 15px Arial";ctx.fillText("✦",0,13);
-ctx.restore();
-ctx.fillStyle="rgba(255,255,255,.95)";ctx.font="900 11px Arial";ctx.textAlign="center";ctx.fillText("SKILL",pickupCard.x,pickupCard.y+49);
+    if(!pickupCard.active || choiceOpen) return;
+    let y = pickupCard.y + Math.sin(performance.now()/300)*5;
+    let rx = pickupCard.x - camera.x, ry = y - camera.y;
+
+    ctx.save();
+    const beam = ctx.createLinearGradient(0, 0, 0, ry - 25);
+    beam.addColorStop(0, "rgba(255,190,55,0)"); beam.addColorStop(.55, "rgba(255,205,75,.18)"); beam.addColorStop(1, "rgba(255,220,100,.65)");
+    ctx.fillStyle = beam; ctx.fillRect(rx - 4, 95, 8, ry - 120);
+
+    ctx.translate(rx, ry); ctx.shadowColor = "rgba(255,203,55,.95)"; ctx.shadowBlur = 28;
+    const grad = ctx.createLinearGradient(-22, -35, 22, 35);
+    grad.addColorStop(0, "#fff2a0"); grad.addColorStop(.35, "#ffd447"); grad.addColorStop(1, "#a96c05");
+    ctx.fillStyle = grad; ctx.beginPath(); ctx.roundRect(-20, -32, 40, 64, 6); ctx.fill();
+    ctx.shadowBlur = 0; ctx.strokeStyle = "#fff7bf"; ctx.lineWidth = 2; ctx.stroke();
+
+    ctx.fillStyle = "#3f2a00"; ctx.textAlign = "center"; ctx.font = "bold 19px Arial"; ctx.fillText("★", 0, -7);
+    ctx.font = "bold 15px Arial"; ctx.fillText("✦", 0, 13);
+    ctx.restore();
+
+    ctx.fillStyle = "rgba(255,255,255,.95)"; ctx.font = "900 11px Arial"; ctx.textAlign = "center";
+    ctx.fillText("SKILL", rx, ry + 49);
 }
+
 function checkSkillPickup(){
-if(!pickupCard.active||choiceOpen||player.dead)return;
-if(Math.hypot(player.x-pickupCard.x,player.y-pickupCard.y)<58){pickupCard.active=false;createParticles(pickupCard.x,pickupCard.y,"#facc15",18);openSkillChoice("card");}
+    if(!pickupCard.active || choiceOpen || player.dead) return;
+    if(Math.hypot(player.x - pickupCard.x, player.y - pickupCard.y) < 58){
+        pickupCard.active = false;
+        createParticles(pickupCard.x, pickupCard.y, "#facc15", 18);
+        openSkillChoice("card");
+    }
 }
 
 function updateParticles(){
-
-    for(
-        let i=
-        particles.length-1;
-        i>=0;
-        i--
-    ){
-
-        let p=
-        particles[i];
-
-        p.x+=p.vx;
-        p.y+=p.vy;
-
-        p.vx*=.96;
-        p.vy*=.96;
-
+    for(let i = particles.length - 1; i >= 0; i--){
+        let p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= .96; p.vy *= .96;
         p.life--;
-
-        if(p.life<=0)
-            particles.splice(i,1);
+        if(p.life <= 0) particles.splice(i, 1);
     }
 }
-
-
-/* =========================
-   EFFECT UPDATE
-========================= */
 
 function updateEffects(){
-
-    for(
-        let i=
-        effects.length-1;
-        i>=0;
-        i--
-    ){
-
-        let e=
-        effects[i];
-
+    for(let i = effects.length - 1; i >= 0; i--){
+        let e = effects[i];
         e.life--;
-
-        if(
-            e.max
-        ){
-
-            e.radius+=
-            (
-                e.max-
-                e.radius
-            )*.2;
-        }
-
-        if(e.life<=0)
-            effects.splice(i,1);
+        if(e.max) e.radius += (e.max - e.radius) * .2;
+        if(e.life <= 0) effects.splice(i, 1);
     }
 }
 
-
 /* =========================
-   DRAW BACKGROUND
+   RENDERING & BACKGROUND FIX
 ========================= */
-
 function drawBackground(){
-    const g=ctx.createLinearGradient(0,110,0,H);
-    g.addColorStop(0,"#6f727b"); g.addColorStop(.45,"#555862"); g.addColorStop(1,"#3b3e46");
-    ctx.fillStyle=g; ctx.fillRect(0,0,WORLD_W,WORLD_H);
-    // stone floor tiles
-    for(let y=105;y<H+60;y+=55){
-      for(let x=-25;x<W+55;x+=70){
-        const ox=((Math.floor(y/55)%2)*35);
-        const xx=x+ox;
-        ctx.fillStyle="rgba(20,22,28,.14)";
-        ctx.beginPath(); ctx.roundRect(xx,y,62,45,5); ctx.fill();
-        ctx.strokeStyle="rgba(255,255,255,.06)"; ctx.lineWidth=2; ctx.stroke();
-      }
-    }
-    // mossy green dungeon edges
-    ctx.fillStyle="#75a816";
-    ctx.beginPath(); ctx.moveTo(0,130); ctx.quadraticCurveTo(W*.35,150,W*.62,125); ctx.quadraticCurveTo(W*.82,105,W,125); ctx.lineTo(W,170); ctx.lineTo(0,170); ctx.closePath(); ctx.fill();
-    ctx.fillStyle="#536f12"; ctx.beginPath(); ctx.moveTo(0,150); ctx.quadraticCurveTo(W*.3,170,W*.55,145); ctx.quadraticCurveTo(W*.8,120,W,145); ctx.lineTo(W,158); ctx.lineTo(0,175); ctx.closePath(); ctx.fill();
-    // random moss splashes
-    for(let i=0;i<22;i++){
-      const x=(i*137)%W, y=190+((i*97)%(Math.max(1,H-240)));
-      ctx.fillStyle=i%2?"#6f9e13":"#7fae18";
-      ctx.beginPath(); ctx.moveTo(x,y);ctx.lineTo(x+12,y-5);ctx.lineTo(x+4,y+9);ctx.lineTo(x-5,y+6);ctx.closePath();ctx.fill();
-    }
-    // crates and stone slabs
-    drawCrate(78,205,25); drawSlab(W-80,270,70,28); drawSlab(50,H*.62,58,27); drawSlab(W-95,H*.78,68,28);
-    // dark vignette
-    const v=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.25,W/2,H/2,Math.max(W,H)*.75);
-    v.addColorStop(0,"rgba(0,0,0,0)"); v.addColorStop(1,"rgba(0,0,0,.45)"); ctx.fillStyle=v;ctx.fillRect(0,0,WORLD_W,WORLD_H);
-}
-function drawCrate(x,y,s){ctx.save();ctx.translate(x,y);ctx.fillStyle="#756858";ctx.fillRect(-s/2,-s/2,s,s);ctx.strokeStyle="#3d352d";ctx.lineWidth=3;ctx.strokeRect(-s/2,-s/2,s,s);ctx.strokeStyle="#9b8b78";ctx.lineWidth=2;ctx.strokeRect(-s/2+5,-s/2+5,s-10,s-10);ctx.restore();}
-function drawSlab(x,y,w,h){ctx.save();ctx.translate(x,y);ctx.fillStyle="rgba(210,211,214,.65)";ctx.strokeStyle="rgba(80,82,87,.6)";ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,4);ctx.fill();ctx.stroke();ctx.restore();}
+    ctx.save();
+    
+    // Smooth Vertical Background Fill linked with Camera
+    const g = ctx.createLinearGradient(0, -camera.y, 0, WORLD_H - camera.y);
+    g.addColorStop(0, "#6f727b"); 
+    g.addColorStop(.45, "#555862"); 
+    g.addColorStop(1, "#3b3e46");
+    
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
 
-/* =========================
-   DRAW PLAYER
-========================= */
+    // Dynamic Grid tiles moving in sync with camera
+    const tileW = 70;
+    const tileH = 55;
+    const startX = - (camera.x % tileW) - tileW;
+    const startY = - (camera.y % tileH) - tileH;
+
+    for(let y = startY; y < H + tileH; y += tileH){
+        let rowIdx = Math.floor((y + camera.y) / tileH);
+        let ox = (Math.abs(rowIdx) % 2) * 35;
+        for(let x = startX - 35; x < W + tileW; x += tileW){
+            ctx.fillStyle = "rgba(20,22,28,.14)";
+            ctx.beginPath(); 
+            ctx.roundRect(x + ox, y, 62, 45, 5); 
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255,255,255,.06)"; 
+            ctx.lineWidth = 2; 
+            ctx.stroke();
+        }
+    }
+
+    // Translate world-relative objects
+    ctx.translate(-camera.x, -camera.y);
+
+    // Grass path decor
+    ctx.fillStyle = "#75a816";
+    ctx.beginPath(); 
+    ctx.moveTo(0, 130); 
+    ctx.quadraticCurveTo(WORLD_W*.35, 150, WORLD_W*.62, 125); 
+    ctx.quadraticCurveTo(WORLD_W*.82, 105, WORLD_W, 125); 
+    ctx.lineTo(WORLD_W, 170); 
+    ctx.lineTo(0, 170); 
+    ctx.closePath(); 
+    ctx.fill();
+
+    for(let i=0; i<40; i++){
+      const x = (i*137)%WORLD_W, y = 190 + ((i*97)%(WORLD_H-240));
+      ctx.fillStyle = i%2 ? "#6f9e13" : "#7fae18";
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+12,y-5); ctx.lineTo(x+4,y+9); ctx.lineTo(x-5,y+6); ctx.closePath(); ctx.fill();
+    }
+
+    drawCrate(78, 205, 25); 
+    drawSlab(WORLD_W - 80, 270, 70, 28);
+    drawSlab(50, WORLD_H*.62, 58, 27); 
+    drawSlab(WORLD_W - 95, WORLD_H*.78, 68, 28);
+
+    ctx.restore();
+}
+
+function drawCrate(x, y, s){
+    ctx.save(); ctx.translate(x, y); ctx.fillStyle = "#756858"; ctx.fillRect(-s/2, -s/2, s, s);
+    ctx.strokeStyle = "#3d352d"; ctx.lineWidth = 3; ctx.strokeRect(-s/2, -s/2, s, s);
+    ctx.restore();
+}
+
+function drawSlab(x, y, w, h){
+    ctx.save(); ctx.translate(x, y); ctx.fillStyle = "rgba(210,211,214,.65)";
+    ctx.strokeStyle = "rgba(80,82,87,.6)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(-w/2, -h/2, w, h, 4); ctx.fill(); ctx.stroke();
+    ctx.restore();
+}
 
 function drawPlayer(){
-
-    const t=performance.now()/1000;
-    const bob=Math.sin(t*7)*1.5;
-    const swing=Math.sin(t*8)*0.12;
-    const dir=player.facingX>=0?1:-1;
+    const t = performance.now()/1000;
+    const bob = Math.sin(t*7)*1.5;
+    const swing = Math.sin(t*8)*0.12;
+    const dir = player.facingX >= 0 ? 1 : -1;
 
     ctx.save();
-    ctx.translate(player.x,player.y+bob);
+    ctx.translate(player.x - camera.x, player.y - camera.y + bob);
 
-    /* ground shadow */
-    ctx.fillStyle="rgba(0,0,0,.38)";
-    ctx.beginPath();
-    ctx.ellipse(0,29,24,7,0,0,Math.PI*2);
-    ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,.38)";
+    ctx.beginPath(); ctx.ellipse(0, 29, 24, 7, 0, 0, Math.PI*2); ctx.fill();
 
-    /* cape */
-    const cape=ctx.createLinearGradient(-18,-5,20,25);
-    cape.addColorStop(0,"#7c3aed");
-    cape.addColorStop(1,"#25104d");
-    ctx.fillStyle=cape;
-    ctx.beginPath();
-    ctx.moveTo(-15,-5);
-    ctx.quadraticCurveTo(-25,9,-20,29);
-    ctx.lineTo(0,22);
-    ctx.lineTo(20,29);
-    ctx.quadraticCurveTo(25,9,15,-5);
-    ctx.closePath();
-    ctx.fill();
+    const cape = ctx.createLinearGradient(-18, -5, 20, 25);
+    cape.addColorStop(0, "#7c3aed"); cape.addColorStop(1, "#25104d");
+    ctx.fillStyle = cape;
+    ctx.beginPath(); ctx.moveTo(-15,-5); ctx.quadraticCurveTo(-25,9,-20,29); ctx.lineTo(0,22); ctx.lineTo(20,29); ctx.quadraticCurveTo(25,9,15,-5); ctx.closePath(); ctx.fill();
 
-    /* legs / boots */
-    ctx.fillStyle="#172033";
-    ctx.fillRect(-11,17,9,12);
-    ctx.fillRect(2,17,9,12);
-    ctx.fillStyle="#0b1020";
-    ctx.beginPath();
-    ctx.ellipse(-7,29,8,4,0,0,Math.PI*2);
-    ctx.ellipse(7,29,8,4,0,0,Math.PI*2);
-    ctx.fill();
+    ctx.fillStyle = "#172033"; ctx.fillRect(-11, 17, 9, 12); ctx.fillRect(2, 17, 9, 12);
+    ctx.fillStyle = "#0b1020"; ctx.beginPath(); ctx.ellipse(-7, 29, 8, 4, 0, 0, Math.PI*2); ctx.ellipse(7, 29, 8, 4, 0, 0, Math.PI*2); ctx.fill();
 
-    /* armored body */
-    const armor=ctx.createLinearGradient(-15,-5,15,22);
-    armor.addColorStop(0,"#60a5fa");
-    armor.addColorStop(.45,"#2563eb");
-    armor.addColorStop(1,"#172554");
-    ctx.fillStyle=armor;
-    ctx.beginPath();
-    ctx.moveTo(-14,-5);
-    ctx.lineTo(14,-5);
-    ctx.lineTo(12,19);
-    ctx.quadraticCurveTo(0,25,-12,19);
-    ctx.closePath();
-    ctx.fill();
+    const armor = ctx.createLinearGradient(-15, -5, 15, 22);
+    armor.addColorStop(0, "#60a5fa"); armor.addColorStop(.45, "#2563eb"); armor.addColorStop(1, "#172554");
+    ctx.fillStyle = armor;
+    ctx.beginPath(); ctx.moveTo(-14,-5); ctx.lineTo(14,-5); ctx.lineTo(12,19); ctx.quadraticCurveTo(0,25,-12,19); ctx.closePath(); ctx.fill();
 
-    /* chest plate */
-    ctx.strokeStyle="#93c5fd";
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.moveTo(0,-3); ctx.lineTo(0,19);
-    ctx.moveTo(-9,3); ctx.quadraticCurveTo(0,7,9,3);
-    ctx.stroke();
+    ctx.strokeStyle = "#93c5fd"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,-3); ctx.lineTo(0,19); ctx.moveTo(-9,3); ctx.quadraticCurveTo(0,7,9,3); ctx.stroke();
 
-    /* shoulder armor */
-    ctx.fillStyle="#94a3b8";
-    ctx.beginPath();
-    ctx.arc(-15,-1,6,0,Math.PI*2);
-    ctx.arc(15,-1,6,0,Math.PI*2);
-    ctx.fill();
+    ctx.fillStyle = "#94a3b8"; ctx.beginPath(); ctx.arc(-15,-1,6,0,Math.PI*2); ctx.arc(15,-1,6,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#d59b78"; ctx.fillRect(-5,-10,10,8);
 
-    /* neck */
-    ctx.fillStyle="#d59b78";
-    ctx.fillRect(-5,-10,10,8);
+    const skin = ctx.createRadialGradient(-5,-25,2,0,-20,16);
+    skin.addColorStop(0, "#ffe0c2"); skin.addColorStop(1, "#b86f52");
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(0,-21,14,16,0,0,Math.PI*2); ctx.fill();
 
-    /* face */
-    const skin=ctx.createRadialGradient(-5,-25,2,0,-20,16);
-    skin.addColorStop(0,"#ffe0c2");
-    skin.addColorStop(1,"#b86f52");
-    ctx.fillStyle=skin;
-    ctx.beginPath();
-    ctx.ellipse(0,-21,14,16,0,0,Math.PI*2);
-    ctx.fill();
+    ctx.fillStyle = "#24170f";
+    ctx.beginPath(); ctx.moveTo(-14,-20); ctx.quadraticCurveTo(-12,-37,2,-36); ctx.quadraticCurveTo(15,-35,14,-19); ctx.lineTo(8,-25); ctx.lineTo(3,-30); ctx.lineTo(-3,-24); ctx.lineTo(-8,-29); ctx.closePath(); ctx.fill();
 
-    /* hair */
-    ctx.fillStyle="#24170f";
-    ctx.beginPath();
-    ctx.moveTo(-14,-20);
-    ctx.quadraticCurveTo(-12,-37,2,-36);
-    ctx.quadraticCurveTo(15,-35,14,-19);
-    ctx.lineTo(8,-25);
-    ctx.lineTo(3,-30);
-    ctx.lineTo(-3,-24);
-    ctx.lineTo(-8,-29);
-    ctx.closePath();
-    ctx.fill();
+    ctx.strokeStyle = "#4b2a20"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-9,-21); ctx.lineTo(-3,-22); ctx.moveTo(3,-22); ctx.lineTo(9,-21); ctx.stroke();
+    ctx.fillStyle = "#111827"; ctx.beginPath(); ctx.arc(-6,-18,2,0,Math.PI*2); ctx.arc(6,-18,2,0,Math.PI*2); ctx.fill();
 
-    /* eyebrows + eyes */
-    ctx.strokeStyle="#4b2a20";
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.moveTo(-9,-21); ctx.lineTo(-3,-22);
-    ctx.moveTo(3,-22); ctx.lineTo(9,-21);
-    ctx.stroke();
-
-    ctx.fillStyle="#111827";
-    ctx.beginPath();
-    ctx.arc(-6,-18,2,0,Math.PI*2);
-    ctx.arc(6,-18,2,0,Math.PI*2);
-    ctx.fill();
-
-    /* nose / mouth */
-    ctx.strokeStyle="#7c4638";
-    ctx.lineWidth=1.5;
-    ctx.beginPath();
-    ctx.moveTo(0,-17); ctx.lineTo(-1,-12); ctx.lineTo(3,-12);
-    ctx.moveTo(-4,-8); ctx.quadraticCurveTo(0,-6,4,-8);
-    ctx.stroke();
-
-    /* sword arm */
     ctx.save();
-    ctx.rotate(swing*dir);
-    ctx.fillStyle="#d59b78";
-    ctx.beginPath();
-    ctx.arc(16,5,5,0,Math.PI*2);
-    ctx.fill();
-
-    /* sword */
-    ctx.translate(20,3);
-    ctx.rotate(-0.55*dir);
-    ctx.fillStyle="#e5e7eb";
-    ctx.beginPath();
-    ctx.moveTo(0,-4);
-    ctx.lineTo(29,0);
-    ctx.lineTo(0,4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle="#f8fafc";
-    ctx.beginPath();
-    ctx.moveTo(3,-2); ctx.lineTo(25,0); ctx.lineTo(3,1); ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle="#b7791f";
-    ctx.fillRect(-4,-6,6,12);
+    ctx.rotate(swing * dir); ctx.fillStyle = "#d59b78";
+    ctx.beginPath(); ctx.arc(16, 5, 5, 0, Math.PI*2); ctx.fill();
+    ctx.translate(20, 3); ctx.rotate(-0.55 * dir);
+    ctx.fillStyle = "#e5e7eb"; ctx.beginPath(); ctx.moveTo(0,-4); ctx.lineTo(29,0); ctx.lineTo(0,4); ctx.closePath(); ctx.fill();
     ctx.restore();
-
-    /* shield */
-    ctx.fillStyle="#334155";
-    ctx.beginPath();
-    ctx.moveTo(-18,2);
-    ctx.lineTo(-28,7);
-    ctx.lineTo(-25,21);
-    ctx.lineTo(-18,27);
-    ctx.lineTo(-11,21);
-    ctx.lineTo(-8,7);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle="#94a3b8";
-    ctx.lineWidth=2;
-    ctx.stroke();
-    ctx.fillStyle="#38bdf8";
-    ctx.beginPath();
-    ctx.moveTo(-18,8); ctx.lineTo(-22,11); ctx.lineTo(-18,21);
-    ctx.lineTo(-14,11); ctx.closePath();
-    ctx.fill();
-
-    /* direction glow */
-    if(selectedSkill){
-        ctx.strokeStyle="rgba(96,165,250,.35)";
-        ctx.lineWidth=2;
-        ctx.beginPath();
-        ctx.arc(0,0,34+Math.sin(t*5)*2,0,Math.PI*2);
-        ctx.stroke();
-    }
 
     ctx.restore();
 }
-
 
 function drawMonster(m){
-
-    const t=performance.now()/1000;
-    const bob=Math.sin(t*5+m.x*.01)*1.5;
-    const r=m.radius;
-    const type=m.type||"goblin";
+    const t = performance.now()/1000;
+    const bob = Math.sin(t*5 + m.x*.01)*1.5;
+    const r = m.radius;
+    const type = m.type || "goblin";
 
     ctx.save();
-    ctx.translate(m.x,m.y+bob);
+    ctx.translate(m.x - camera.x, m.y - camera.y + bob);
 
-    /* shadow */
-    ctx.fillStyle="rgba(0,0,0,.42)";
-    ctx.beginPath();
-    ctx.ellipse(0,r+7,r*1.05,7,0,0,Math.PI*2);
-    ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,.42)";
+    ctx.beginPath(); ctx.ellipse(0, r+7, r*1.05, 7, 0, 0, Math.PI*2); ctx.fill();
 
-    if(type==="brute"){
-        /* big armored demon */
-        ctx.fillStyle="#351313";
-        ctx.beginPath();
-        ctx.moveTo(-r*.8,-r*.5);
-        ctx.lineTo(-r*1.25,-r*1.25);
-        ctx.lineTo(-r*.45,-r*.85);
-        ctx.lineTo(0,-r*1.1);
-        ctx.lineTo(r*.45,-r*.85);
-        ctx.lineTo(r*1.25,-r*1.25);
-        ctx.lineTo(r*.8,-r*.5);
-        ctx.closePath();
-        ctx.fill();
-
-        const body=ctx.createRadialGradient(-r*.35,-r*.35,2,0,0,r*1.2);
-        body.addColorStop(0,"#f87171");
-        body.addColorStop(.5,"#b91c1c");
-        body.addColorStop(1,"#450a0a");
-        ctx.fillStyle=body;
-        ctx.beginPath();
-        ctx.ellipse(0,2,r*.9,r*1.05,0,0,Math.PI*2);
-        ctx.fill();
-
-        ctx.fillStyle="#7f1d1d";
-        ctx.fillRect(-r*1.15,-2,r*.45,10);
-        ctx.fillRect(r*.7,-2,r*.45,10);
-    }else if(type==="mage"){
-        /* shadow mage */
-        ctx.fillStyle="#27134d";
-        ctx.beginPath();
-        ctx.moveTo(-r*1.1,r);
-        ctx.lineTo(-r*.7,-r*.6);
-        ctx.quadraticCurveTo(0,-r*1.2,r*.7,-r*.6);
-        ctx.lineTo(r*1.1,r);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle="#7e22ce";
-        ctx.beginPath();
-        ctx.arc(0,-r*.25,r*.65,0,Math.PI*2);
-        ctx.fill();
-
-        ctx.fillStyle="#c084fc";
-        ctx.beginPath();
-        ctx.arc(-r*.28,-r*.3,3,0,Math.PI*2);
-        ctx.arc(r*.28,-r*.3,3,0,Math.PI*2);
-        ctx.fill();
-
-        ctx.strokeStyle="rgba(216,180,254,.7)";
-        ctx.lineWidth=2;
-        ctx.beginPath();
-        ctx.arc(0,0,r+7+t%1*2,0,Math.PI*2);
-        ctx.stroke();
-    }else{
-        /* goblin */
-        const body=ctx.createRadialGradient(-r*.35,-r*.45,2,0,0,r);
-        body.addColorStop(0,"#86efac");
-        body.addColorStop(.5,"#22c55e");
-        body.addColorStop(1,"#14532d");
-        ctx.fillStyle=body;
-        ctx.beginPath();
-        ctx.ellipse(0,3,r*.9,r,0,0,Math.PI*2);
-        ctx.fill();
-
-        /* ears */
-        ctx.fillStyle="#15803d";
-        ctx.beginPath();
-        ctx.moveTo(-r*.55,-r*.35);
-        ctx.lineTo(-r*1.25,-r*.7);
-        ctx.lineTo(-r*.7,r*.15);
-        ctx.closePath();
-        ctx.moveTo(r*.55,-r*.35);
-        ctx.lineTo(r*1.25,-r*.7);
-        ctx.lineTo(r*.7,r*.15);
-        ctx.closePath();
-        ctx.fill();
-
-        /* horns */
-        ctx.fillStyle="#f1f5f9";
-        ctx.beginPath();
-        ctx.moveTo(-r*.45,-r*.7);
-        ctx.lineTo(-r*.8,-r*1.35);
-        ctx.lineTo(-r*.15,-r*.8);
-        ctx.closePath();
-        ctx.moveTo(r*.45,-r*.7);
-        ctx.lineTo(r*.8,-r*1.35);
-        ctx.lineTo(r*.15,-r*.8);
-        ctx.closePath();
-        ctx.fill();
+    if(type === "brute"){
+        const body = ctx.createRadialGradient(-r*.35, -r*.35, 2, 0, 0, r*1.2);
+        body.addColorStop(0, "#f87171"); body.addColorStop(.5, "#b91c1c"); body.addColorStop(1, "#450a0a");
+        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, 2, r*.9, r*1.05, 0, 0, Math.PI*2); ctx.fill();
+    } else if(type === "mage"){
+        ctx.fillStyle = "#27134d"; ctx.beginPath(); ctx.moveTo(-r*1.1, r); ctx.lineTo(-r*.7, -r*.6); ctx.quadraticCurveTo(0, -r*1.2, r*.7, -r*.6); ctx.lineTo(r*1.1, r); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#7e22ce"; ctx.beginPath(); ctx.arc(0, -r*.25, r*.65, 0, Math.PI*2); ctx.fill();
+    } else {
+        const body = ctx.createRadialGradient(-r*.35, -r*.45, 2, 0, 0, r);
+        body.addColorStop(0, "#86efac"); body.addColorStop(.5, "#22c55e"); body.addColorStop(1, "#14532d");
+        ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, 3, r*.9, r, 0, 0, Math.PI*2); ctx.fill();
     }
 
-    /* face details for all */
-    ctx.fillStyle="#fef3c7";
-    ctx.beginPath();
-    ctx.ellipse(-r*.3,-r*.2,r*.18,r*.13,0,0,Math.PI*2);
-    ctx.ellipse(r*.3,-r*.2,r*.18,r*.13,0,0,Math.PI*2);
-    ctx.fill();
+    ctx.fillStyle = "#fef3c7"; ctx.beginPath(); ctx.ellipse(-r*.3, -r*.2, r*.18, r*.13, 0, 0, Math.PI*2); ctx.ellipse(r*.3, -r*.2, r*.18, r*.13, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#111827"; ctx.beginPath(); ctx.arc(-r*.27, -r*.2, r*.07, 0, Math.PI*2); ctx.arc(r*.27, -r*.2, r*.07, 0, Math.PI*2); ctx.fill();
 
-    ctx.fillStyle="#111827";
-    ctx.beginPath();
-    ctx.arc(-r*.27,-r*.2,r*.07,0,Math.PI*2);
-    ctx.arc(r*.27,-r*.2,r*.07,0,Math.PI*2);
-    ctx.fill();
-
-    /* mouth */
-    ctx.strokeStyle="#240b0b";
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.arc(0,r*.15,r*.28,0.15,Math.PI-0.15);
-    ctx.stroke();
-
-    /* weapon/claws */
-    ctx.strokeStyle=type==="brute"?"#d1d5db":"#d1fae5";
-    ctx.lineWidth=3;
-    ctx.beginPath();
-    ctx.moveTo(-r*.7,r*.35);
-    ctx.lineTo(-r*1.05,r*.75);
-    ctx.moveTo(r*.7,r*.35);
-    ctx.lineTo(r*1.05,r*.75);
-    ctx.stroke();
-
-    /* hit flash */
-    if(m.flash>0){
-        ctx.fillStyle="rgba(255,255,255,.7)";
-        ctx.beginPath();
-        ctx.arc(0,0,r*1.05,0,Math.PI*2);
-        ctx.fill();
+    if(m.flash > 0){
+        ctx.fillStyle = "rgba(255,255,255,.7)";
+        ctx.beginPath(); ctx.arc(0, 0, r*1.05, 0, Math.PI*2); ctx.fill();
     }
 
-    /* HP bar */
-    const bw=r*2.5;
-    ctx.fillStyle="rgba(0,0,0,.75)";
-    ctx.fillRect(-bw/2,-r-17,bw,7);
-    ctx.fillStyle=m.hp/m.maxHp>.5?"#22c55e":m.hp/m.maxHp>.25?"#f59e0b":"#ef4444";
-    ctx.fillRect(-bw/2,-r-17,bw*Math.max(0,m.hp/m.maxHp),7);
-    ctx.strokeStyle="rgba(255,255,255,.25)";
-    ctx.lineWidth=1;
-    ctx.strokeRect(-bw/2,-r-17,bw,7);
-
-    /* frozen ring */
-    if(m.frozen>0){
-        ctx.strokeStyle="#bae6fd";
-        ctx.lineWidth=4;
-        ctx.shadowBlur=12;
-        ctx.shadowColor="#38bdf8";
-        ctx.beginPath();
-        ctx.arc(0,0,r+9,0,Math.PI*2);
-        ctx.stroke();
-        ctx.shadowBlur=0;
-    }
+    const bw = r*2.5;
+    ctx.fillStyle = "rgba(0,0,0,.75)"; ctx.fillRect(-bw/2, -r-17, bw, 7);
+    ctx.fillStyle = m.hp/m.maxHp > .5 ? "#22c55e" : m.hp/m.maxHp > .25 ? "#f59e0b" : "#ef4444";
+    ctx.fillRect(-bw/2, -r-17, bw*Math.max(0, m.hp/m.maxHp), 7);
 
     ctx.restore();
 }
 
-
-/* =========================
-   DRAW PROJECTILES
-========================= */
-
 function drawProjectiles(){
-
-    for(
-        const p of projectiles
-    ){
-
+    for(const p of projectiles){
         ctx.save();
+        ctx.shadowBlur = 25; ctx.shadowColor = p.color;
+        let rx = p.x - camera.x, ry = p.y - camera.y;
 
-        ctx.shadowBlur=25;
-
-        ctx.shadowColor=
-        p.color;
-
-        if(
-            p.type===
-            "fireball"
-        ){
-
-            ctx.fillStyle=
-            "#ff3300";
-
-            ctx.beginPath();
-
-            ctx.arc(
-                p.x,
-                p.y,
-                12,
-                0,
-                Math.PI*2
-            );
-
-            ctx.fill();
-
-            ctx.fillStyle=
-            "#ffd166";
-
-            ctx.beginPath();
-
-            ctx.arc(
-                p.x-3,
-                p.y-3,
-                6,
-                0,
-                Math.PI*2
-            );
-
-            ctx.fill();
+        if(p.type === "fireball"){
+            ctx.fillStyle = "#ff3300"; ctx.beginPath(); ctx.arc(rx, ry, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#ffd166"; ctx.beginPath(); ctx.arc(rx-3, ry-3, 6, 0, Math.PI*2); ctx.fill();
+        } else if(p.type === "water"){
+            ctx.fillStyle = "#38bdf8"; ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI*2); ctx.fill();
+        } else {
+            ctx.fillStyle = "#bae6fd"; ctx.beginPath(); ctx.moveTo(rx, ry-14); ctx.lineTo(rx+9, ry); ctx.lineTo(rx, ry+14); ctx.lineTo(rx-9, ry); ctx.closePath(); ctx.fill();
         }
-
-        else if(
-            p.type===
-            "water"
-        ){
-
-            ctx.fillStyle=
-            "#38bdf8";
-
-            ctx.beginPath();
-
-            ctx.arc(
-                p.x,
-                p.y,
-                10,
-                0,
-                Math.PI*2
-            );
-
-            ctx.fill();
-
-            ctx.strokeStyle=
-            "#bae6fd";
-
-            ctx.lineWidth=3;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                p.x,
-                p.y,
-                15,
-                0,
-                Math.PI*2
-            );
-
-            ctx.stroke();
-        }
-
-        else{
-
-            /*
-               ICE
-            */
-
-            ctx.fillStyle=
-            "#bae6fd";
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                p.x,
-                p.y-14
-            );
-
-            ctx.lineTo(
-                p.x+9,
-                p.y
-            );
-
-            ctx.lineTo(
-                p.x,
-                p.y+14
-            );
-
-            ctx.lineTo(
-                p.x-9,
-                p.y
-            );
-
-            ctx.closePath();
-
-            ctx.fill();
-        }
-
         ctx.restore();
     }
 }
-
-
-/* =========================
-   DRAW EFFECTS
-========================= */
 
 function drawEffects(){
-
-    for(
-        const e of effects
-    ){
-
-        let alpha=
-        Math.max(
-            0,
-            e.life/45
-        );
-
+    for(const e of effects){
+        let alpha = Math.max(0, e.life/45);
         ctx.save();
+        ctx.globalAlpha = alpha;
+        let rx = e.x - camera.x, ry = e.y - camera.y;
 
-        ctx.globalAlpha=
-        alpha;
-
-        /*
-           FIRE / WATER /
-           BLIZZARD AREA
-        */
-
-        if(
-            e.type===
-            "flame"||
-            e.type===
-            "tsunami"||
-            e.type===
-            "blizzard"
-        ){
-
-            ctx.strokeStyle=
-            e.color;
-
-            ctx.lineWidth=
-            e.type==="flame"?
-            18:
-            14;
-
-            ctx.shadowBlur=25;
-
-            ctx.shadowColor=
-            e.color;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                e.x,
-                e.y,
-                e.radius,
-                0,
-                Math.PI*2
-            );
-
-            ctx.stroke();
-
-            if(
-                e.type==="blizzard"
-            ){
-
-                for(
-                    let i=0;
-                    i<15;
-                    i++
-                ){
-
-                    let a=
-                    i*.45;
-
-                    let x=
-                    e.x+
-                    Math.cos(a)*
-                    e.radius*.7;
-
-                    let y=
-                    e.y+
-                    Math.sin(a)*
-                    e.radius*.7;
-
-                    ctx.fillStyle=
-                    "#ffffff";
-
-                    ctx.beginPath();
-
-                    ctx.arc(
-                        x,y,
-                        4,
-                        0,
-                        Math.PI*2
-                    );
-
-                    ctx.fill();
-                }
-            }
+        if(e.type === "flame" || e.type === "tsunami" || e.type === "blizzard"){
+            ctx.strokeStyle = e.color; ctx.lineWidth = e.type === "flame" ? 18 : 14;
+            ctx.shadowBlur = 25; ctx.shadowColor = e.color;
+            ctx.beginPath(); ctx.arc(rx, ry, e.radius, 0, Math.PI*2); ctx.stroke();
         }
 
-        /*
-           THUNDER
-        */
-
-        if(
-            e.type===
-            "thunder"
-        ){
-
-            ctx.strokeStyle=
-            "#fde047";
-
-            ctx.lineWidth=7;
-
-            ctx.shadowBlur=30;
-
-            ctx.shadowColor=
-            "#fde047";
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                e.x,
-                0
-            );
-
-            ctx.lineTo(
-                e.x-15,
-                e.y*.35
-            );
-
-            ctx.lineTo(
-                e.x+15,
-                e.y*.55
-            );
-
-            ctx.lineTo(
-                e.x-8,
-                e.y*.75
-            );
-
-            ctx.lineTo(
-                e.x,
-                e.y
-            );
-
-            ctx.stroke();
+        if(e.type === "thunder"){
+            ctx.strokeStyle = "#fde047"; ctx.lineWidth = 7; ctx.shadowBlur = 30; ctx.shadowColor = "#fde047";
+            ctx.beginPath(); ctx.moveTo(rx, 0); ctx.lineTo(rx-15, ry*.35); ctx.lineTo(rx+15, ry*.55); ctx.lineTo(rx-8, ry*.75); ctx.lineTo(rx, ry); ctx.stroke();
         }
-
         ctx.restore();
     }
 }
 
-
-/* =========================
-   PARTICLES DRAW
-========================= */
-
 function drawParticles(){
-
-    for(
-        const p of particles
-    ){
-
-        ctx.globalAlpha=
-        Math.max(
-            0,
-            p.life/40
-        );
-
-        ctx.fillStyle=
-        p.color;
-
-        ctx.beginPath();
-
-        ctx.arc(
-            p.x,
-            p.y,
-            3,
-            0,
-            Math.PI*2
-        );
-
-        ctx.fill();
+    for(const p of particles){
+        ctx.globalAlpha = Math.max(0, p.life/40);
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x - camera.x, p.y - camera.y, 3, 0, Math.PI*2); ctx.fill();
     }
-
-    ctx.globalAlpha=1;
+    ctx.globalAlpha = 1;
 }
 
-
-/* =========================
-   JOYSTICK DRAW
-========================= */
-
-function drawJoystick(){
-    // Joystick is invisible, but touch movement remains active.
-    return;
-  const x=joy.active?joy.startX:W/2, y=joy.active?joy.startY:H-115;
-  ctx.save();ctx.globalAlpha=.55;
-  ctx.fillStyle="rgba(20,22,28,.38)";ctx.strokeStyle="rgba(255,255,255,.12)";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,80,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle="rgba(255,255,255,.18)";ctx.beginPath();ctx.arc(x,y,26,0,Math.PI*2);ctx.fill();ctx.stroke();
-  if(joy.active){ctx.fillStyle="rgba(220,225,235,.45)";ctx.beginPath();ctx.arc(x+joy.x*55,y+joy.y*55,22,0,Math.PI*2);ctx.fill();}
-  ctx.restore();
+function damageText(x, y, text, color){
+    texts.push({ x: x, y: y, text: "-" + text, color: color, life: 35 });
 }
-
-/* =========================
-   DAMAGE TEXT
-========================= */
-
-function damageText(
-    x,y,text,color
-){
-
-    texts.push({
-
-        x:x,
-        y:y,
-
-        text:"-"+text,
-
-        color:color,
-
-        life:35
-    });
-}
-
 
 function updateTexts(){
-
-    for(
-        let i=texts.length-1;
-        i>=0;
-        i--
-    ){
-
-        let t=texts[i];
-
-        t.y-=.6;
-
-        t.life--;
-
-        if(t.life<=0)
-            texts.splice(i,1);
+    for(let i = texts.length - 1; i >= 0; i--){
+        let t = texts[i];
+        t.y -= .6; t.life--;
+        if(t.life <= 0) texts.splice(i, 1);
     }
 }
-
 
 function drawTexts(){
-
-    for(
-        const t of texts
-    ){
-
-        ctx.globalAlpha=
-        t.life/35;
-
-        ctx.fillStyle=
-        t.color;
-
-        ctx.font=
-        "bold 17px Arial";
-
-        ctx.textAlign=
-        "center";
-
-        ctx.fillText(
-            t.text,
-            t.x,
-            t.y
-        );
+    for(const t of texts){
+        ctx.globalAlpha = t.life / 35;
+        ctx.fillStyle = t.color; ctx.font = "bold 17px Arial"; ctx.textAlign = "center";
+        ctx.fillText(t.text, t.x - camera.x, t.y - camera.y);
     }
-
-    ctx.globalAlpha=1;
+    ctx.globalAlpha = 1;
 }
-
-
-/* =========================
-   HUD
-========================= */
 
 function updateHUD(){
- document.getElementById("coins").textContent=player.coins;
- document.getElementById("stage").textContent=stage;
- document.getElementById("kills").textContent=kills;
- document.getElementById("gemsCount").textContent=xpGems.length;
- const progress=Math.max(0,Math.min(100,player.xp/(player.level*100)*100));
- document.getElementById("stageProgressBar").style.width=progress+"%";
- const sec=Math.floor((performance.now()-gameStartTime)/1000),m=Math.floor(sec/60),ss=String(sec%60).padStart(2,"0");
- document.getElementById("gameTimer").textContent=m+":"+ss;
- const slots=document.getElementById("skillSlots"); if(slots){slots.innerHTML="";Object.keys(ownedSkills).slice(0,8).forEach(n=>{const d=document.createElement("div");d.className="skillSlot"+(n===selectedSkill?" active":"");d.textContent=skillData[n].icon;slots.appendChild(d);});}
-}
+    document.getElementById("coins").textContent = player.coins;
+    document.getElementById("stage").textContent = stage;
+    document.getElementById("kills").textContent = kills;
+    document.getElementById("gemsCount").textContent = xpGems.length;
+    const progress = Math.max(0, Math.min(100, player.xp / (player.level * 100) * 100));
+    document.getElementById("stageProgressBar").style.width = progress + "%";
+    const sec = Math.floor((performance.now() - gameStartTime) / 1000), m = Math.floor(sec / 60), ss = String(sec % 60).padStart(2, "0");
+    document.getElementById("gameTimer").textContent = m + ":" + ss;
 
-/* =========================
-   SKILL UI
-========================= */
+    const slots = document.getElementById("skillSlots");
+    if(slots){
+        slots.innerHTML = "";
+        Object.keys(ownedSkills).slice(0, 8).forEach(n => {
+            const d = document.createElement("div");
+            d.className = "skillSlot" + (n === selectedSkill ? " active" : "");
+            d.textContent = skillData[n].icon;
+            slots.appendChild(d);
+        });
+    }
+}
 
 function updateSkillUI(){
-const list=document.getElementById("ownedSkillsList");
-if(list){
-list.innerHTML="";
-const names=Object.keys(ownedSkills);
-if(!names.length)list.innerHTML='<div class="ownedRow"><div class="ownedInfo"><div class="ownedName">No skills yet</div><div class="ownedDesc">Collect the golden skill card to begin.</div></div></div>';
-else names.forEach(name=>{const s=skillData[name],row=document.createElement("div");row.className="ownedRow";row.innerHTML='<div class="ownedIcon">'+s.icon+'</div><div class="ownedInfo"><div class="ownedName">'+s.name+'</div><div class="ownedDesc">'+s.desc+'</div></div><div class="ownedRank">Lv.'+ownedSkills[name]+'</div>';list.appendChild(row);});
+    const list = document.getElementById("ownedSkillsList");
+    if(list){
+        list.innerHTML = "";
+        const names = Object.keys(ownedSkills);
+        if(!names.length) list.innerHTML = '<div class="ownedRow"><div class="ownedInfo"><div class="ownedName">No skills yet</div><div class="ownedDesc">Collect the golden skill card to begin.</div></div></div>';
+        else names.forEach(name => {
+            const s = skillData[name], row = document.createElement("div");
+            row.className = "ownedRow";
+            row.innerHTML = '<div class="ownedIcon">' + s.icon + '</div><div class="ownedInfo"><div class="ownedName">' + s.name + '</div><div class="ownedDesc">' + s.desc + '</div></div><div class="ownedRank">Lv.' + ownedSkills[name] + '</div>';
+            list.appendChild(row);
+        });
+    }
 }
-}
-
-
-/* =========================
-   MESSAGE
-========================= */
 
 let messageTimer;
-
 function showMessage(text){
-
-    let box=
-    document.getElementById(
-        "message"
-    );
-
-    box.textContent=text;
-
-    box.style.opacity=1;
-    box.style.pointerEvents="none";
-
-    clearTimeout(
-        messageTimer
-    );
-
-    messageTimer=
-    setTimeout(
-        ()=>{
-            box.style.opacity=0;
-        },
-        1200
-    );
+    let box = document.getElementById("message");
+    box.textContent = text;
+    box.style.opacity = 1; box.style.pointerEvents = "none";
+    clearTimeout(messageTimer);
+    messageTimer = setTimeout(() => { box.style.opacity = 0; }, 1200);
 }
-
 
 /* =========================
-   BUTTON EVENTS
+   UI EVENTS
 ========================= */
-document.getElementById("skillButton").onclick=()=>{renderBook();document.getElementById("bookOverlay").style.display="block";};
-document.getElementById("closeSkill").onclick=()=>document.getElementById("skillPanel").style.display="none";
-document.getElementById("closeBook").onclick=()=>document.getElementById("bookOverlay").style.display="none";
-function refreshChoices(){ if(!choiceOpen||freeUses<=0)return; freeUses--; choiceOptions=randomChoicePool(); renderSkillChoices(); document.getElementById("freeUses").textContent=freeUses; }
-document.getElementById("refreshChoices").onclick=refreshChoices;
-document.getElementById("choiceBook").onclick=()=>{renderBook();document.getElementById("bookOverlay").style.display="block";};
+document.getElementById("skillButton").onclick = () => { renderBook(); document.getElementById("bookOverlay").style.display = "block"; };
+document.getElementById("closeSkill").onclick = () => document.getElementById("skillPanel").style.display = "none";
+document.getElementById("closeBook").onclick = () => document.getElementById("bookOverlay").style.display = "none";
 
+function refreshChoices(){
+    if(!choiceOpen || freeUses <= 0) return;
+    freeUses--; choiceOptions = randomChoicePool(); renderSkillChoices();
+    document.getElementById("freeUses").textContent = freeUses;
+}
+document.getElementById("refreshChoices").onclick = refreshChoices;
+document.getElementById("choiceBook").onclick = () => { renderBook(); document.getElementById("bookOverlay").style.display = "block"; };
 
 function renderBook(){
-const list=document.getElementById("bookList");list.innerHTML="";
-[["🦇","⚔️","❤️"],["❄️","➕","💚"],["🔥","⏱️","💧"],["💥","⚔️","⭐"],["❤️","➕","⚔️"],["⚡","⏱️","🌩️"]].forEach(r=>{let d=document.createElement("div");d.className="recipe";d.innerHTML="<span>"+r[0]+"</span> ＋ <span>"+r[1]+"</span> ＝ <span>"+r[2]+"</span>";list.appendChild(d);});
+    const list = document.getElementById("bookList"); list.innerHTML = "";
+    [["🦇","⚔️","❤️"],["❄️","➕","💚"],["🔥","⏱️","💧"],["💥","⚔️","⭐"],["❤️","➕","⚔️"],["⚡","⏱️","🌩️"]].forEach(r => {
+        let d = document.createElement("div"); d.className = "recipe";
+        d.innerHTML = "<span>" + r[0] + "</span> ＋ <span>" + r[1] + "</span> ＝ <span>" + r[2] + "</span>";
+        list.appendChild(d);
+    });
 }
-document.getElementById("bookOverlay").addEventListener("click",e=>{if(e.target.classList.contains("bookShade"))document.getElementById("bookOverlay").style.display="none";});
-document.getElementById("choiceOverlay").addEventListener("click",e=>{if(e.target.classList.contains("choiceShade"))showMessage("Choose one skill!");});
 
 /* =========================
    GAME LOOP
 ========================= */
-
 function gameLoop(){
-if(player.dead){
-drawBackground();drawXpGems();drawEffects();drawProjectiles();drawParticles();for(const m of monsters)drawMonster(m);drawPickupCard();drawPlayer();drawTexts();updateHUD();return;
-}
-movePlayer();
-if(!choiceOpen){
-moveMonsters();autoAttack();automaticSkill();updateProjectiles();updateParticles();updateEffects();updateTexts();updateXpGems();maintainMonsters();checkSkillPickup();
-}else{updateParticles();updateEffects();updateTexts();}
-drawBackground();drawXpGems();drawEffects();drawProjectiles();drawParticles();for(const m of monsters)drawMonster(m);drawPickupCard();drawPlayer();drawTexts();drawJoystick();updateHUD();requestAnimationFrame(gameLoop);
+    if(player.dead){
+        drawBackground(); drawXpGems(); drawEffects(); drawProjectiles(); drawParticles();
+        for(const m of monsters) drawMonster(m);
+        drawPickupCard(); drawPlayer(); drawTexts(); updateHUD();
+        return;
+    }
+
+    movePlayer();
+    if(!choiceOpen){
+        moveMonsters(); autoAttack(); automaticSkill(); updateProjectiles();
+        updateParticles(); updateEffects(); updateTexts(); updateXpGems();
+        maintainMonsters(); checkSkillPickup();
+    } else {
+        updateParticles(); updateEffects(); updateTexts();
+    }
+
+    drawBackground(); drawXpGems(); drawEffects(); drawProjectiles(); drawParticles();
+    for(const m of monsters) drawMonster(m);
+    drawPickupCard(); drawPlayer(); drawTexts(); updateHUD();
+
+    requestAnimationFrame(gameLoop);
 }
 
 /* =========================
-   START
+   START GAME
 ========================= */
-
 resize();
-gameStartTime=performance.now();
-pickupCard={active:true,x:W/2,y:H/2-115,pulse:0};
-for(let i=0;i<5;i++)createMonster();
-updateSkillUI();updateHUD();gameLoop();
+gameStartTime = performance.now();
+pickupCard = {active: true, x: WORLD_W/2, y: WORLD_H/2 - 115, pulse: 0};
+for(let i=0; i<5; i++) createMonster();
+updateSkillUI(); updateHUD();
+gameLoop();
 
 </script>
-
 </body>
 </html>
