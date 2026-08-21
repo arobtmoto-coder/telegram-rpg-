@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width,
+        initial-scale=1.0,
+        maximum-scale=1.0,
+        user-scalable=no">
+
+    <title>Element RPG</title>
+
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+    <canvas id="game"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+
+        <div class="top">
+
+            <div>
+                ⭐ Lv <span id="level">1</span>
+            </div>
+
+            <div>
+                🪙 <span id="coins">0</span>
+            </div>
+
+            <div>
+                🏆 Stage <span id="stage">1</span>
+            </div>
+
+        </div>
+
+        <div class="bar-label">❤️ HP</div>
+
+        <div class="bar">
+            <div id="hpBar"></div>
+        </div>
+
+        <div class="bar-label">✨ XP</div>
+
+        <div class="bar">
+            <div id="xpBar"></div>
+        </div>
+
+    </div>
+
+
+    <!-- Selected Skill -->
+    <button id="useSkill">
+        ⚡ Select Skill
+    </button>
+
+
+    <!-- Skills -->
+    <button id="skillsButton">
+        ⚡ SKILLS
+    </button>
+
+
+    <!-- Skill Panel -->
+    <div id="skillPanel">
+
+        <div class="skill-title">
+
+            <b>⚡ ELEMENTAL SKILLS</b>
+
+            <button id="closeSkill">
+                ✕
+            </button>
+
+        </div>
+
+
+        <div class="element-title fire-title">
+            🔥 FIRE
+        </div>
+
+        <button class="skill-button"
+            data-skill="fireball">
+
+            🔥 Fireball
+            <span>25 DMG</span>
+
+        </button>
+
+        <button class="skill-button"
+            data-skill="flamewave">
+
+            🔥 Flame Wave
+            <span>45 DMG</span>
+
+        </button>
+
+
+        <div class="element-title water-title">
+            💧 WATER
+        </div>
+
+        <button class="skill-button"
+            data-skill="waterbolt">
+
+            💧 Water Bolt
+            <span>30 DMG</span>
+
+        </button>
+
+        <button class="skill-button"
+            data-skill="tsunami">
+
+            🌊 Tsunami
+            <span>60 DMG</span>
+
+        </button>
+
+
+        <div class="element-title ice-title">
+            ❄️ ICE
+        </div>
+
+        <button class="skill-button"
+            data-skill="iceshard">
+
+            ❄️ Ice Shard
+            <span>30 DMG</span>
+
+        </button>
+
+        <button class="skill-button"
+            data-skill="blizzard">
+
+            🌨️ Blizzard
+            <span>70 DMG</span>
+
+        </button>
+
+
+        <div class="element-title lightning-title">
+            ⚡ LIGHTNING
+        </div>
+
+        <button class="skill-button"
+            data-skill="thunder">
+
+            ⚡ Thunder Bolt
+            <span>40 DMG</span>
+
+        </button>
+
+    </div>
+
+
+    <div id="message"></div>
+
+
+    <!-- IMPORTANT -->
+    <script src="./game.js?v=100"></script>
+
+</body>
+</html>
