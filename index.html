@@ -280,7 +280,7 @@ html,body{
 </div>
 
 <button id="useSkill">
-    ⚡ Select Skill
+    ⚡ AUTO SKILL: OFF
 </button>
 
 <button id="skillButton">
@@ -386,6 +386,10 @@ const player={
 
     hp:100,
     maxHp:100,
+
+    lastDamage:0,
+    damageCooldown:700,
+    dead:false,
 
     level:1,
     xp:0,
@@ -717,7 +721,9 @@ function createMonster(){
 
         frozen:0,
 
-        flash:0
+        flash:0,
+
+        lastAttack:0
     });
 }
 
@@ -746,40 +752,69 @@ function maintainMonsters(){
 
 function moveMonsters(){
 
-    for(
-        const m of monsters
-    ){
+    for(const m of monsters){
 
-        if(m.flash>0)
-            m.flash--;
+        if(m.flash>0) m.flash--;
 
         if(m.frozen>0){
-
             m.frozen--;
-
             continue;
         }
 
-        let dx=
-        player.x-m.x;
-
-        let dy=
-        player.y-m.y;
-
-        let d=
-        Math.hypot(dx,dy);
+        let dx=player.x-m.x;
+        let dy=player.y-m.y;
+        let d=Math.hypot(dx,dy);
 
         if(d>60){
-
-            m.x+=
-            dx/d*
-            m.speed;
-
-            m.y+=
-            dy/d*
-            m.speed;
+            if(d>0){
+                m.x+=dx/d*m.speed;
+                m.y+=dy/d*m.speed;
+            }
+        }else{
+            let now=performance.now();
+            if(now-m.lastAttack>=900){
+                m.lastAttack=now;
+                damagePlayer(8,m);
+            }
         }
     }
+}
+
+
+/* =========================
+   PLAYER DAMAGE
+========================= */
+
+function damagePlayer(damage,monster){
+
+    if(player.dead) return;
+
+    player.hp-=damage;
+    if(player.hp<0) player.hp=0;
+
+    createParticles(player.x,player.y,"#ef4444",10);
+    damageText(player.x,player.y-45,damage,"#ff5555");
+
+    if(monster){
+        let dx=player.x-monster.x;
+        let dy=player.y-monster.y;
+        let d=Math.hypot(dx,dy);
+        if(d>0){
+            player.x+=dx/d*5;
+            player.y+=dy/d*5;
+        }
+    }
+
+    if(player.hp<=0){
+        player.dead=true;
+        showGameOver();
+    }
+}
+
+function showGameOver(){
+    const box=document.getElementById("message");
+    box.innerHTML="💀 GAME OVER<br><br><button onclick="location.reload()" style="padding:12px 25px;border:0;border-radius:10px;font-weight:bold;cursor:pointer">RESTART</button>";
+    box.style.opacity=1;
 }
 
 
@@ -965,7 +1000,7 @@ function selectSkill(name){
     document.getElementById(
         "useSkill"
     ).textContent=
-    "⚡ "+
+    "⚡ AUTO: "+
     getSkillName(name);
 
     /*
@@ -1015,141 +1050,31 @@ function getSkillName(name){
 
 function useSkill(){
 
-    if(!selectedSkill){
+    if(!selectedSkill || player.dead) return false;
 
-        showMessage(
-            "⚡ Select a skill first"
-        );
+    const s=skillData[selectedSkill];
+    let now=performance.now();
+    let last=skillCooldowns[selectedSkill]||0;
 
-        return;
+    if(now-last<s.cooldown) return false;
+    if(monsters.length===0) return false;
+
+    if(s.type==="projectile" || s.type==="thunder"){
+        if(!findNearest()) return false;
     }
 
-    const s=
-    skillData[selectedSkill];
+    skillCooldowns[selectedSkill]=now;
 
-    let now=
-    performance.now();
+    if(s.type==="projectile") castProjectile(s);
+    else if(s.type==="area") castArea(s);
+    else if(s.type==="thunder") castThunder(s);
 
-    let last=
-    skillCooldowns[
-        selectedSkill
-    ]||0;
-
-    if(
-        now-last<
-        s.cooldown
-    ){
-
-        let sec=
-        (
-            s.cooldown-
-            (now-last)
-        )/1000;
-
-        showMessage(
-            "⏳ "+
-            sec.toFixed(1)+
-            "s"
-        );
-
-        return;
-    }
-
-    skillCooldowns[
-        selectedSkill
-    ]=now;
-
-
-    if(
-        s.type===
-        "projectile"
-    ){
-
-        castProjectile(s);
-
-    }
-
-    else if(
-        s.type===
-        "area"
-    ){
-
-        castArea(s);
-
-    }
-
-    else if(
-        s.type===
-        "thunder"
-    ){
-
-        castThunder(s);
-    }
+    return true;
 }
 
-
-/* =========================
-   PROJECTILE
-========================= */
-
-function castProjectile(s){
-
-    let target=
-    findNearest();
-
-    if(!target){
-
-        showMessage(
-            "No monster!"
-        );
-
-        return;
-    }
-
-    projectiles.push({
-
-        x:player.x,
-        y:player.y,
-
-        target:target,
-
-        speed:s.speed,
-
-        damage:s.damage,
-
-        color:s.color,
-
-        type:selectedSkill,
-
-        life:100
-    });
-}
-
-
-function findNearest(){
-
-    let target=null;
-
-    let best=999999;
-
-    for(
-        const m of monsters
-    ){
-
-        let d=
-        Math.hypot(
-            m.x-player.x,
-            m.y-player.y
-        );
-
-        if(d<best){
-
-            best=d;
-            target=m;
-        }
-    }
-
-    return target;
+function automaticSkill(){
+    if(!selectedSkill || player.dead) return;
+    useSkill();
 }
 
 
@@ -2551,8 +2476,15 @@ document
 
 document.getElementById(
     "useSkill"
-).onclick=
-useSkill;
+).onclick=()=>{
+
+    if(!selectedSkill){
+        showMessage("⚡ Select a skill first");
+        return;
+    }
+
+    useSkill();
+};
 
 
 /* =========================
@@ -2566,6 +2498,8 @@ function gameLoop(){
     moveMonsters();
 
     autoAttack();
+
+    automaticSkill();
 
     updateProjectiles();
 
