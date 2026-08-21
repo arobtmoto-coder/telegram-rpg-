@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width,
+                   initial-scale=1.0,
+                   maximum-scale=1.0,
+                   user-scalable=no">
+
+    <title>Telegram RPG</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+
+<body>
+
+    <canvas id="game"></canvas>
+
+    <div id="hud">
+        <div class="top">
+
+            <div>
+                <b>⚔️ RPG HERO</b>
+                <br>
+                Level <span id="level">1</span>
+            </div>
+
+            <div>
+                🪙 <span id="coins">0</span>
+            </div>
+
+        </div>
+
+        <div class="bar">
+            <div id="hp"></div>
+        </div>
+
+        <div class="bar xp">
+            <div id="xp"></div>
+        </div>
+
+        <div class="stage">
+            STAGE <span id="stage">1</span>
+        </div>
+    </div>
+
+    <button id="skills">
+        ⚡ SKILLS
+    </button>
+
+    <div id="skillPanel">
+
+        <h2>⚡ Skills</h2>
+
+        <p>
+            Skill Points:
+            <b id="points">0</b>
+        </p>
+
+        <button onclick="upgrade('attack')">
+            ⚔️ Attack +
+        </button>
+
+        <button onclick="upgrade('speed')">
+            👟 Speed +
+        </button>
+
+        <button onclick="upgrade('critical')">
+            💥 Critical +
+        </button>
+
+        <button onclick="closeSkills()">
+            Close
+        </button>
+
+    </div>
+
+    <div id="message"></div>
+
+    <script src="game.js"></script>
+
+</body>
+</html>
