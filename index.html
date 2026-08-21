@@ -236,6 +236,33 @@ html,body{
     pointer-events:none;
 }
 
+
+
+/* ===== CARD-BASED SKILL SYSTEM ===== */
+#activeSkillBadge{position:fixed;left:18px;bottom:18px;z-index:20;padding:11px 14px;border-radius:16px;background:rgba(17,24,39,.9);border:2px solid rgba(250,204,21,.7);color:#fff;font-size:12px;font-weight:900;box-shadow:0 8px 25px rgba(0,0,0,.35);pointer-events:none}
+#skillButton{right:18px;bottom:18px;padding:13px 16px;border-radius:16px;background:linear-gradient(#fff,#dbeafe);color:#182033;border:2px solid #7c8aa5;font-size:14px;font-weight:900;z-index:20}
+#skillPanel{display:none;position:fixed;inset:0;z-index:80;width:100%;max-width:none;max-height:none;overflow:auto;transform:none;left:0;top:0;padding:75px 18px 30px;background:rgba(0,0,0,.94);border:0;border-radius:0}
+#skillPanel h2{color:#fff;font-size:28px;text-align:center}
+#ownedSkillsList{width:min(650px,96vw);margin:auto;display:grid;gap:12px}
+.ownedRow{display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:16px;background:linear-gradient(#2b3342,#171d28);border:1px solid rgba(255,255,255,.12);color:#fff}
+.ownedIcon{font-size:29px;width:40px;text-align:center}.ownedInfo{flex:1}.ownedName{font-size:16px;font-weight:900}.ownedDesc{font-size:12px;opacity:.75;margin-top:3px}.ownedRank{padding:6px 8px;border-radius:10px;background:#facc15;color:#3a2500;font-weight:900}
+#closeSkill,#closeBook{display:block;width:min(650px,96vw);margin:20px auto 0;padding:14px;border:0;border-radius:15px;background:#374151;color:#fff;font-weight:900;font-size:15px}
+#choiceOverlay,#bookOverlay{display:none;position:fixed;inset:0;z-index:120}
+.choiceShade,.bookShade{position:absolute;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(3px)}
+.choiceContent{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(680px,97vw);max-height:94vh;overflow:auto;padding:16px 8px 20px;color:#fff;text-align:center}
+.choiceTitle{font-size:28px;font-weight:1000;text-shadow:0 3px #000;margin-bottom:3px}.choiceSub{font-size:11px;font-weight:900;letter-spacing:2px;color:#facc15;margin-bottom:14px}
+#choiceCards{display:flex;gap:9px;justify-content:center}
+.skillCard{position:relative;flex:1;min-width:0;min-height:350px;border-radius:20px 20px 30px 30px;border:3px solid #f8cf49;background:linear-gradient(#ffd85a 0 29%,#eeb527 29% 49%,#3b251a 49%);color:#fff;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.35);cursor:pointer}
+.skillCard.passive{border-color:#59c9ff;background:linear-gradient(#55c9f2 0 29%,#239ecb 29% 49%,#102c58 49%)}
+.skillCard:active{transform:scale(.97)}
+.cardRibbon{position:absolute;top:-2px;left:50%;transform:translateX(-50%);min-width:92px;padding:6px 10px;border-radius:0 0 16px 16px;background:#ffd43b;color:#855400;font-weight:1000;font-size:12px;box-shadow:0 3px #b78614}
+.passive .cardRibbon{background:#56d5ff;color:#07517a;box-shadow:0 3px #1684b0}
+.cardName{margin-top:43px;padding:0 4px;font-size:16px;font-weight:1000;text-shadow:0 2px rgba(0,0,0,.35)}
+.cardIcon{height:100px;display:flex;align-items:center;justify-content:center;font-size:62px;filter:drop-shadow(0 7px 5px rgba(0,0,0,.35))}
+.cardRankDots{font-size:11px;letter-spacing:2px}.cardBody{padding:12px 9px 18px;min-height:145px}.cardDesc{font-size:12px;line-height:1.3;font-weight:900}.cardMeta{margin-top:13px;font-size:10px;opacity:.8;font-weight:900}.cardEvolution{margin-top:7px;font-size:10px;color:#fef08a;font-weight:900}
+.choiceFree{margin-top:13px;font-weight:1000;font-size:13px}
+.bookContent{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,94vw);max-height:90vh;overflow:auto;text-align:center;color:#fff}.bookIcon{font-size:58px}.bookTitle{font-size:24px;font-weight:1000;margin:8px 0 16px}.recipe{display:flex;justify-content:center;gap:8px;padding:10px;border-bottom:1px solid rgba(255,255,255,.14);font-size:22px}.recipe span{font-size:12px;font-weight:900}
+@media(max-width:430px){.choiceTitle{font-size:24px}.skillCard{min-height:325px;border-radius:17px 17px 25px 25px}.cardName{font-size:13px}.cardIcon{height:82px;font-size:50px}.cardBody{padding:9px 6px}.cardDesc{font-size:11px}.cardMeta,.cardEvolution{font-size:9px}}
 </style>
 </head>
 
@@ -279,58 +306,32 @@ html,body{
 
 </div>
 
-<button id="useSkill">
-    ⚡ AUTO SKILL: OFF
-</button>
+<div id="activeSkillBadge">⚡ ACTIVE: NONE</div>
+<button id="skillButton">📖 SKILL BOOK</button>
 
-<button id="skillButton">
-    ⚡ SKILLS
-</button>
-
-<div id="skillPanel">
-
-    <h2>⚡ ELEMENT SKILLS</h2>
-
-    <button class="skill" data-skill="fireball">
-        <div>🔥 Fireball</div>
-        <span>Lv 1</span>
-    </button>
-
-    <button class="skill locked" data-skill="water">
-        <div>💧 Water Bolt</div>
-        <span>Lv 2</span>
-    </button>
-
-    <button class="skill locked" data-skill="ice">
-        <div>❄️ Ice Shard</div>
-        <span>Lv 3</span>
-    </button>
-
-    <button class="skill locked" data-skill="flame">
-        <div>🔥 Flame Wave</div>
-        <span>Lv 3</span>
-    </button>
-
-    <button class="skill locked" data-skill="thunder">
-        <div>⚡ Thunder</div>
-        <span>Lv 5</span>
-    </button>
-
-    <button class="skill locked" data-skill="tsunami">
-        <div>🌊 Tsunami</div>
-        <span>Lv 5</span>
-    </button>
-
-    <button class="skill locked" data-skill="blizzard">
-        <div>🌨️ Blizzard</div>
-        <span>Lv 7</span>
-    </button>
-
-    <button id="closeSkill">
-        CLOSE
-    </button>
-
+<div id="skillPanel" aria-hidden="true">
+<h2>⚡ SKILL BOOK</h2>
+<div id="ownedSkillsList"></div>
+<button id="closeSkill">CLOSE</button>
 </div>
+
+<div id="choiceOverlay" aria-hidden="true">
+<div class="choiceShade"></div>
+<div class="choiceContent">
+<div class="choiceTitle">Choose your Skill!</div>
+<div class="choiceSub" id="choiceSub">GOLDEN CARD • NEW SKILL</div>
+<div id="choiceCards"></div>
+<div class="choiceFree">FREE • Choose 1</div>
+</div></div>
+
+<div id="bookOverlay" aria-hidden="true">
+<div class="bookShade"></div>
+<div class="bookContent">
+<div class="bookIcon">📖</div>
+<div class="bookTitle">SKILL EVOLUTION BOOK</div>
+<div id="bookList"></div>
+<button id="closeBook">Tap to close</button>
+</div></div>
 
 <div id="message"></div>
 
@@ -426,6 +427,13 @@ let texts=[];
 let selectedSkill=null;
 
 let skillCooldowns={};
+let ownedSkills={};
+let passiveStats={crit:0,attack:0,maxHp:0,regen:0,haste:0};
+let xpGems=[];
+let pickupCard={active:true,x:0,y:0,pulse:0};
+let choiceOpen=false;
+let choiceReason="card";
+let choiceOptions=[];
 
 
 /* =========================
@@ -433,69 +441,23 @@ let skillCooldowns={};
 ========================= */
 
 const skillData={
-
-    fireball:{
-        level:1,
-        damage:30,
-        cooldown:1000,
-        type:"projectile",
-        color:"#ff4500",
-        speed:8
-    },
-
-    water:{
-        level:2,
-        damage:35,
-        cooldown:1200,
-        type:"projectile",
-        color:"#38bdf8",
-        speed:9
-    },
-
-    ice:{
-        level:3,
-        damage:40,
-        cooldown:1300,
-        type:"projectile",
-        color:"#bae6fd",
-        speed:8
-    },
-
-    flame:{
-        level:3,
-        damage:55,
-        cooldown:2500,
-        type:"area",
-        color:"#ff6b00",
-        radius:140
-    },
-
-    thunder:{
-        level:5,
-        damage:65,
-        cooldown:1800,
-        type:"thunder",
-        color:"#fde047"
-    },
-
-    tsunami:{
-        level:5,
-        damage:75,
-        cooldown:3500,
-        type:"area",
-        color:"#0ea5e9",
-        radius:190
-    },
-
-    blizzard:{
-        level:7,
-        damage:90,
-        cooldown:4500,
-        type:"area",
-        color:"#dbeafe",
-        radius:200
-    }
-
+fireball:{level:1,damage:30,cooldown:1000,type:"projectile",color:"#ff5a1f",speed:8,icon:"🔥",name:"Fireball",desc:"Shoots a blazing fireball.",evolve:"Damage +25%"},
+water:{level:2,damage:35,cooldown:1200,type:"projectile",color:"#38bdf8",speed:9,icon:"💧",name:"Water Bolt",desc:"Fires a fast water bolt.",evolve:"Speed +20%"},
+ice:{level:3,damage:40,cooldown:1300,type:"projectile",color:"#bae6fd",speed:8,icon:"❄️",name:"Ice Shard",desc:"Freezes the target briefly.",evolve:"Longer freeze"},
+flame:{level:3,damage:55,cooldown:2500,type:"area",color:"#ff6b00",radius:140,icon:"🌋",name:"Flame Wave",desc:"Burning wave damages nearby monsters.",evolve:"Area +20%"},
+thunder:{level:5,damage:65,cooldown:1800,type:"thunder",color:"#fde047",icon:"⚡",name:"Thunder",desc:"Calls lightning on a nearby monster.",evolve:"Damage +25%"},
+tsunami:{level:5,damage:75,cooldown:3000,type:"area",color:"#22d3ee",radius:170,icon:"🌊",name:"Tsunami",desc:"A huge wave hits nearby enemies.",evolve:"Radius +20%"},
+blizzard:{level:7,damage:90,cooldown:4500,type:"area",color:"#dbeafe",radius:200,icon:"🌨️",name:"Blizzard",desc:"Freezes and damages a wide area.",evolve:"Freeze field +20%"},
+bat:{level:1,damage:22,cooldown:1400,type:"projectile",color:"#a855f7",speed:10,icon:"🦇",name:"Bat Arrow",desc:"Summons a homing bat.",evolve:"Extra bat"},
+frostField:{level:1,damage:20,cooldown:2600,type:"area",color:"#67e8f9",radius:120,icon:"🧊",name:"Frost Field",desc:"Creates a slowing frost field.",evolve:"Field radius +25%"},
+boomFrog:{level:2,damage:48,cooldown:2200,type:"area",color:"#facc15",radius:105,icon:"🐸",name:"Boom Frog",desc:"Launches a bouncing frog bomb.",evolve:"Explosion +30%"},
+familiar:{level:2,damage:28,cooldown:1500,type:"projectile",color:"#c084fc",speed:7,icon:"🐲",name:"Familiar",desc:"Fires a bouncing spirit.",evolve:"Spirit +25%"},
+bulldak:{level:3,damage:60,cooldown:2800,type:"area",color:"#fb923c",radius:135,icon:"🐦",name:"Buldak",desc:"Summons a ring of attacking birds.",evolve:"More birds"},
+crit:{level:1,type:"passive",icon:"💥",name:"Crit Rate",desc:"Crit Rate +10%.",evolve:"Crit Rate +10%"},
+power:{level:2,type:"passive",icon:"⚔️",name:"Power",desc:"Attack +12%.",evolve:"Attack +12%"},
+vitality:{level:2,type:"passive",icon:"❤️",name:"Vitality",desc:"Max HP +20.",evolve:"Max HP +25"},
+haste:{level:3,type:"passive",icon:"⏱️",name:"Haste",desc:"Skill cooldown -8%.",evolve:"Cooldown -6%"},
+regen:{level:4,type:"passive",icon:"💚",name:"Recovery",desc:"Regenerate 1 HP every 2 sec.",evolve:"Regeneration +1 HP"}
 };
 
 
@@ -593,6 +555,8 @@ stopJoy
 ========================= */
 
 function movePlayer(){
+
+    if(player.dead || choiceOpen) return;
 
     let dx=joy.x;
     let dy=joy.y;
@@ -711,6 +675,10 @@ function createMonster(){
 
         color:t.color,
 
+        type:
+        t.color==="#22c55e" ? "goblin" :
+        t.color==="#ef4444" ? "brute" : "mage",
+
         hp:hp,
 
         maxHp:hp,
@@ -729,6 +697,8 @@ function createMonster(){
 
 
 function maintainMonsters(){
+
+    if(player.dead || choiceOpen) return;
 
     let wanted=
     Math.min(
@@ -751,6 +721,8 @@ function maintainMonsters(){
 ========================= */
 
 function moveMonsters(){
+
+    if(player.dead || choiceOpen) return;
 
     for(const m of monsters){
 
@@ -813,8 +785,19 @@ function damagePlayer(damage,monster){
 
 function showGameOver(){
     const box=document.getElementById("message");
-    box.innerHTML="💀 GAME OVER<br><br><button onclick="location.reload()" style="padding:12px 25px;border:0;border-radius:10px;font-weight:bold;cursor:pointer">RESTART</button>";
+    box.innerHTML='💀 GAME OVER<br><br><button onclick="restartGame()" style="padding:12px 25px;border:0;border-radius:10px;font-weight:bold;cursor:pointer">RESTART</button>';
     box.style.opacity=1;
+    box.style.pointerEvents="auto";
+}
+
+function restartGame(){
+player.x=W/2;player.y=H/2;player.hp=100;player.maxHp=100;player.dead=false;player.level=1;player.xp=0;player.coins=0;player.attack=15;player.lastAttack=0;player.lastDamage=0;player.facingX=1;player.facingY=0;
+stage=1;kills=0;selectedSkill=null;skillCooldowns={};ownedSkills={};passiveStats={crit:0,attack:0,maxHp:0,regen:0,haste:0};xpGems=[];choiceOpen=false;
+pickupCard={active:true,x:W/2,y:H/2-115,pulse:0};
+monsters=[];projectiles=[];effects=[];particles=[];texts=[];
+document.getElementById("skillPanel").style.display="none";document.getElementById("choiceOverlay").style.display="none";document.getElementById("bookOverlay").style.display="none";
+const box=document.getElementById("message");box.innerHTML="";box.style.opacity=0;box.style.pointerEvents="none";
+for(let i=0;i<5;i++)createMonster();updateSkillUI();updateHUD();requestAnimationFrame(gameLoop);
 }
 
 
@@ -823,6 +806,8 @@ function showGameOver(){
 ========================= */
 
 function autoAttack(){
+
+    if(player.dead || choiceOpen) return;
 
     let now=
     performance.now();
@@ -874,67 +859,23 @@ function autoAttack(){
    DAMAGE MONSTER
 ========================= */
 
-function hitMonster(
-    monster,
-    damage,
-    color
-){
-
-    monster.hp-=damage;
-
-    monster.flash=8;
-
-    createParticles(
-        monster.x,
-        monster.y,
-        color,
-        8
-    );
-
-    damageText(
-        monster.x,
-        monster.y-30,
-        damage,
-        color
-    );
-
-    if(monster.hp<=0){
-
-        let index=
-        monsters.indexOf(
-            monster
-        );
-
-        if(index!==-1){
-
-            monsters.splice(
-                index,
-                1
-            );
-        }
-
-        player.coins+=5;
-
-        player.xp+=20;
-
-        kills++;
-
-        if(
-            kills>=
-            5+stage*2
-        ){
-
-            kills=0;
-
-            stage++;
-
-            showMessage(
-                "🏆 STAGE "+stage
-            );
-        }
-
-        levelCheck();
-    }
+function hitMonster(monster,damage,color){
+let finalDamage=damage;
+if(Math.random()<Math.min(.75,(passiveStats.crit||0)/100)){
+finalDamage=Math.round(finalDamage*2);
+damageText(monster.x,monster.y-50,"CRIT! "+finalDamage,"#facc15");
+}
+monster.hp-=finalDamage; monster.flash=8;
+createParticles(monster.x,monster.y,color,8);
+damageText(monster.x,monster.y-30,finalDamage,color);
+if(monster.hp<=0){
+let index=monsters.indexOf(monster); if(index!==-1) monsters.splice(index,1);
+player.coins+=5; kills++;
+for(let i=0;i<2+Math.floor(Math.random()*3);i++) xpGems.push({x:monster.x+(Math.random()-.5)*55,y:monster.y+(Math.random()-.5)*55,value:10,life:900,spin:Math.random()*6.28});
+createParticles(monster.x,monster.y,"#84cc16",12);
+if(kills>=5+stage*2){kills=0;stage++;showMessage("🏆 STAGE "+stage);}
+levelCheck();
+}
 }
 
 
@@ -943,33 +884,15 @@ function hitMonster(
 ========================= */
 
 function levelCheck(){
-
-    let required=
-    player.level*100;
-
-    if(
-        player.xp>=required
-    ){
-
-        player.xp-=required;
-
-        player.level++;
-
-        player.attack+=5;
-
-        player.maxHp+=15;
-
-        player.hp=
-        player.maxHp;
-
-        showMessage(
-            "⭐ LEVEL "+
-            player.level+
-            "!"
-        );
-
-        updateSkillUI();
-    }
+let required=player.level*100;
+while(player.xp>=required){
+player.xp-=required; player.level++;
+player.attack+=5; player.maxHp+=15; player.hp=player.maxHp;
+showMessage("⭐ LEVEL "+player.level+"!");
+if(player.level>=2) openSkillChoice("level");
+required=player.level*100;
+}
+updateSkillUI();
 }
 
 
@@ -977,70 +900,73 @@ function levelCheck(){
    SKILL SELECTION
 ========================= */
 
-function selectSkill(name){
+function getSkillName(name){return skillData[name]?.name||name;}
+function getSkillRank(name){return ownedSkills[name]||0;}
+function skillRankText(rank){return "●".repeat(Math.min(rank,3))+"○".repeat(Math.max(0,3-Math.min(rank,3)));}
 
-    const skill=
-    skillData[name];
-
-    if(
-        player.level<
-        skill.level
-    ){
-
-        showMessage(
-            "🔒 Unlock at Level "+
-            skill.level
-        );
-
-        return;
-    }
-
-    selectedSkill=name;
-
-    document.getElementById(
-        "useSkill"
-    ).textContent=
-    "⚡ AUTO: "+
-    getSkillName(name);
-
-    /*
-       IMPORTANT:
-       PANEL CLOSES AUTOMATICALLY
-    */
-
-    document.getElementById(
-        "skillPanel"
-    ).style.display=
-    "none";
-
-    showMessage(
-        getSkillName(name)+
-        " Selected!"
-    );
+function applyPassive(name){
+let r=ownedSkills[name]||1;
+if(name==="crit") passiveStats.crit=10*r;
+if(name==="power") passiveStats.attack=12*r;
+if(name==="vitality") passiveStats.maxHp=20+25*(r-1);
+if(name==="haste") passiveStats.haste=8+6*(r-1);
+if(name==="regen") passiveStats.regen=r;
+player.attack=Math.round((15+(player.level-1)*5)*(1+passiveStats.attack/100));
+player.maxHp=100+(player.level-1)*15+passiveStats.maxHp;
+if(player.hp>player.maxHp) player.hp=player.maxHp;
 }
 
+function chooseSkill(name){
+if(!choiceOpen||!skillData[name]) return;
+const s=skillData[name], old=ownedSkills[name]||0;
+ownedSkills[name]=Math.min(3,old+1);
+if(s.type==="passive") applyPassive(name);
+else{
+if(old>0){s.damage=Math.round(s.damage*1.2);if(s.radius)s.radius=Math.round(s.radius*1.15);if(s.speed)s.speed*=1.08;}
+selectedSkill=name;
+}
+choiceOpen=false;
+document.getElementById("choiceOverlay").style.display="none";
+document.getElementById("choiceOverlay").setAttribute("aria-hidden","true");
+document.getElementById("activeSkillBadge").textContent=s.type==="passive"?"💠 PASSIVE: "+s.name+" Lv."+ownedSkills[name]:"⚡ ACTIVE: "+s.name+" Lv."+ownedSkills[name];
+showMessage((old?"⬆️ Evolved ":"✨ Equipped ")+s.name+" Lv."+ownedSkills[name]);
+updateSkillUI(); updateHUD();
+}
 
-function getSkillName(name){
+function randomChoicePool(){
+const available=Object.keys(skillData).filter(n=>player.level>=skillData[n].level&&(ownedSkills[n]||0)<3);
+let active=available.filter(n=>skillData[n].type!=="passive"), passive=available.filter(n=>skillData[n].type==="passive");
+let pool=[];
+if(active.length) pool.push(active[Math.floor(Math.random()*active.length)]);
+if(passive.length) pool.push(passive[Math.floor(Math.random()*passive.length)]);
+while(pool.length<3&&available.length){let n=available[Math.floor(Math.random()*available.length)];if(!pool.includes(n))pool.push(n);if(pool.length>=available.length)break;}
+while(pool.length<3)pool.push(available[Math.floor(Math.random()*available.length)]||"fireball");
+return pool;
+}
 
-    const names={
+function renderSkillChoices(){
+const wrap=document.getElementById("choiceCards"); wrap.innerHTML="";
+choiceOptions.forEach(name=>{
+const s=skillData[name], rank=ownedSkills[name]||0, card=document.createElement("button");
+card.type="button"; card.className="skillCard "+(s.type==="passive"?"passive":"");
+card.innerHTML='<div class="cardRibbon">'+(rank?"EVOLVE":(s.type==="passive"?"PASSIVE":"ACTIVE"))+'</div><div class="cardName">'+s.name+'</div><div class="cardIcon">'+s.icon+'</div><div class="cardRankDots">'+skillRankText(Math.max(1,rank))+'</div><div class="cardBody"><div class="cardDesc">'+s.desc+'</div><div class="cardMeta">'+(rank?"Current Lv. "+rank:"New Skill")+'</div><div class="cardEvolution">✦ '+s.evolve+'</div></div>';
+card.onclick=()=>chooseSkill(name); wrap.appendChild(card);
+});
+}
 
-        fireball:"🔥 Fireball",
+function openSkillChoice(reason){
+if(player.dead)return;
+choiceReason=reason; choiceOptions=randomChoicePool(); renderSkillChoices();
+document.getElementById("choiceSub").textContent=reason==="card"?"GOLDEN CARD • NEW SKILL":"LEVEL UP • CHOOSE 1";
+document.getElementById("choiceOverlay").style.display="block";
+document.getElementById("choiceOverlay").setAttribute("aria-hidden","false");
+choiceOpen=true;
+}
 
-        water:"💧 Water Bolt",
-
-        ice:"❄️ Ice Shard",
-
-        flame:"🔥 Flame Wave",
-
-        thunder:"⚡ Thunder",
-
-        tsunami:"🌊 Tsunami",
-
-        blizzard:"🌨️ Blizzard"
-
-    };
-
-    return names[name];
+function selectSkill(name){
+if(player.level<skillData[name].level){showMessage("🔒 Unlock at Level "+skillData[name].level);return;}
+if(!choiceOpen){showMessage("Collect the golden card or level up to choose.");return;}
+chooseSkill(name);
 }
 
 
@@ -1048,28 +974,41 @@ function getSkillName(name){
    USE SKILL
 ========================= */
 
-function useSkill(){
-
-    if(!selectedSkill || player.dead) return false;
-
-    const s=skillData[selectedSkill];
-    let now=performance.now();
-    let last=skillCooldowns[selectedSkill]||0;
-
-    if(now-last<s.cooldown) return false;
-    if(monsters.length===0) return false;
-
-    if(s.type==="projectile" || s.type==="thunder"){
-        if(!findNearest()) return false;
+function findNearest(){
+    let target=null;
+    let closest=Infinity;
+    for(const m of monsters){
+        const d=Math.hypot(m.x-player.x,m.y-player.y);
+        if(d<closest){ closest=d; target=m; }
     }
+    return target;
+}
 
-    skillCooldowns[selectedSkill]=now;
-
-    if(s.type==="projectile") castProjectile(s);
-    else if(s.type==="area") castArea(s);
-    else if(s.type==="thunder") castThunder(s);
-
+function castProjectile(s){
+    const target=findNearest();
+    if(!target) return false;
+    projectiles.push({
+        x:player.x, y:player.y,
+        target:target,
+        damage:s.damage,
+        color:s.color,
+        speed:s.speed,
+        type:selectedSkill,
+        life:120
+    });
     return true;
+}
+
+function useSkill(){
+if(!selectedSkill||player.dead||choiceOpen)return false;
+const s=skillData[selectedSkill]; if(!s||s.type==="passive")return false;
+let now=performance.now(), haste=passiveStats.haste||0;
+let cd=s.cooldown*(1-haste/100), last=skillCooldowns[selectedSkill]||0;
+if(now-last<cd||monsters.length===0)return false;
+if((s.type==="projectile"||s.type==="thunder")&&!findNearest())return false;
+skillCooldowns[selectedSkill]=now;
+if(s.type==="projectile")castProjectile(s);else if(s.type==="area")castArea(s);else if(s.type==="thunder")castThunder(s);
+return true;
 }
 
 function automaticSkill(){
@@ -1311,6 +1250,37 @@ function createParticles(
 }
 
 
+function updateXpGems(){
+for(let i=xpGems.length-1;i>=0;i--){
+let g=xpGems[i]; g.life--; g.spin+=.12;
+let d=Math.hypot(g.x-player.x,g.y-player.y);
+if(d<90){g.x+=(player.x-g.x)*.14;g.y+=(player.y-g.y)*.14;}
+if(d<24){player.xp+=g.value;createParticles(g.x,g.y,"#84cc16",5);texts.push({x:g.x,y:g.y-12,text:"+"+g.value+" XP",color:"#bef264",life:30});xpGems.splice(i,1);levelCheck();continue;}
+if(g.life<=0)xpGems.splice(i,1);
+}
+if((passiveStats.regen||0)>0&&!player.dead){if(!player._regenTick)player._regenTick=performance.now();if(performance.now()-player._regenTick>=2000){player.hp=Math.min(player.maxHp,player.hp+passiveStats.regen);player._regenTick=performance.now();}}
+}
+function drawXpGems(){
+for(const g of xpGems){
+ctx.save();ctx.translate(g.x,g.y);ctx.rotate(g.spin);ctx.shadowColor="#84cc16";ctx.shadowBlur=10;ctx.fillStyle="#84cc16";
+ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(6,0);ctx.lineTo(0,8);ctx.lineTo(-6,0);ctx.closePath();ctx.fill();
+ctx.fillStyle="#d9f99d";ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(3,0);ctx.lineTo(0,2);ctx.closePath();ctx.fill();ctx.restore();
+}
+}
+function drawPickupCard(){
+if(!pickupCard.active||choiceOpen)return;
+let y=pickupCard.y+Math.sin(performance.now()/350)*5;
+ctx.save();ctx.translate(pickupCard.x,y);ctx.shadowColor="rgba(250,204,21,.9)";ctx.shadowBlur=20;
+let grad=ctx.createLinearGradient(-20,-30,20,30);grad.addColorStop(0,"#fff4a3");grad.addColorStop(.4,"#ffd54a");grad.addColorStop(1,"#b8790b");ctx.fillStyle=grad;
+ctx.beginPath();ctx.roundRect(-19,-29,38,58,7);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle="#fff6b3";ctx.lineWidth=2;ctx.stroke();
+ctx.fillStyle="#5b3a00";ctx.textAlign="center";ctx.font="bold 20px Arial";ctx.fillText("★",0,-6);ctx.font="bold 18px Arial";ctx.fillText("+",0,15);ctx.restore();
+ctx.fillStyle="rgba(255,255,255,.9)";ctx.font="bold 12px Arial";ctx.textAlign="center";ctx.fillText("SKILL",pickupCard.x,pickupCard.y+48);
+}
+function checkSkillPickup(){
+if(!pickupCard.active||choiceOpen||player.dead)return;
+if(Math.hypot(player.x-pickupCard.x,player.y-pickupCard.y)<58){pickupCard.active=false;createParticles(pickupCard.x,pickupCard.y,"#facc15",18);openSkillChoice("card");}
+}
+
 function updateParticles(){
 
     for(
@@ -1499,356 +1469,345 @@ function drawTree(x,y){
 
 function drawPlayer(){
 
+    const t=performance.now()/1000;
+    const bob=Math.sin(t*7)*1.5;
+    const swing=Math.sin(t*8)*0.12;
+    const dir=player.facingX>=0?1:-1;
+
     ctx.save();
+    ctx.translate(player.x,player.y+bob);
 
-    ctx.translate(
-        player.x,
-        player.y
-    );
-
-    /*
-       Shadow
-    */
-
-    ctx.fillStyle=
-    "rgba(0,0,0,.35)";
-
+    /* ground shadow */
+    ctx.fillStyle="rgba(0,0,0,.38)";
     ctx.beginPath();
-
-    ctx.ellipse(
-        0,
-        27,
-        25,
-        8,
-        0,
-        0,
-        Math.PI*2
-    );
-
+    ctx.ellipse(0,29,24,7,0,0,Math.PI*2);
     ctx.fill();
 
-    /*
-       Cape
-    */
-
-    ctx.fillStyle=
-    "#312e81";
-
+    /* cape */
+    const cape=ctx.createLinearGradient(-18,-5,20,25);
+    cape.addColorStop(0,"#7c3aed");
+    cape.addColorStop(1,"#25104d");
+    ctx.fillStyle=cape;
     ctx.beginPath();
-
-    ctx.moveTo(-18,-3);
-    ctx.lineTo(-23,28);
-    ctx.lineTo(0,20);
-    ctx.lineTo(23,28);
-    ctx.lineTo(18,-3);
-
+    ctx.moveTo(-15,-5);
+    ctx.quadraticCurveTo(-25,9,-20,29);
+    ctx.lineTo(0,22);
+    ctx.lineTo(20,29);
+    ctx.quadraticCurveTo(25,9,15,-5);
+    ctx.closePath();
     ctx.fill();
 
-    /*
-       Body
-    */
-
-    ctx.fillStyle=
-    "#2563eb";
-
-    ctx.fillRect(
-        -14,
-        -5,
-        28,
-        30
-    );
-
-    /*
-       Face
-    */
-
-    ctx.fillStyle=
-    "#f2c6a5";
-
+    /* legs / boots */
+    ctx.fillStyle="#172033";
+    ctx.fillRect(-11,17,9,12);
+    ctx.fillRect(2,17,9,12);
+    ctx.fillStyle="#0b1020";
     ctx.beginPath();
-
-    ctx.arc(
-        0,
-        -20,
-        15,
-        0,
-        Math.PI*2
-    );
-
+    ctx.ellipse(-7,29,8,4,0,0,Math.PI*2);
+    ctx.ellipse(7,29,8,4,0,0,Math.PI*2);
     ctx.fill();
 
-    /*
-       Hair
-    */
-
-    ctx.fillStyle=
-    "#1f2937";
-
+    /* armored body */
+    const armor=ctx.createLinearGradient(-15,-5,15,22);
+    armor.addColorStop(0,"#60a5fa");
+    armor.addColorStop(.45,"#2563eb");
+    armor.addColorStop(1,"#172554");
+    ctx.fillStyle=armor;
     ctx.beginPath();
-
-    ctx.arc(
-        0,
-        -25,
-        15,
-        Math.PI,
-        Math.PI*2
-    );
-
+    ctx.moveTo(-14,-5);
+    ctx.lineTo(14,-5);
+    ctx.lineTo(12,19);
+    ctx.quadraticCurveTo(0,25,-12,19);
+    ctx.closePath();
     ctx.fill();
 
-    /*
-       Eyes
-    */
-
-    ctx.fillStyle=
-    "#111";
-
+    /* chest plate */
+    ctx.strokeStyle="#93c5fd";
+    ctx.lineWidth=2;
     ctx.beginPath();
-
-    ctx.arc(
-        -5,
-        -20,
-        2,
-        0,
-        Math.PI*2
-    );
-
-    ctx.arc(
-        5,
-        -20,
-        2,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-    /*
-       Weapon
-    */
-
-    ctx.strokeStyle=
-    "#e5e7eb";
-
-    ctx.lineWidth=5;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        player.facingX*10,
-        player.facingY*10
-    );
-
-    ctx.lineTo(
-        player.facingX*32,
-        player.facingY*32
-    );
-
+    ctx.moveTo(0,-3); ctx.lineTo(0,19);
+    ctx.moveTo(-9,3); ctx.quadraticCurveTo(0,7,9,3);
     ctx.stroke();
+
+    /* shoulder armor */
+    ctx.fillStyle="#94a3b8";
+    ctx.beginPath();
+    ctx.arc(-15,-1,6,0,Math.PI*2);
+    ctx.arc(15,-1,6,0,Math.PI*2);
+    ctx.fill();
+
+    /* neck */
+    ctx.fillStyle="#d59b78";
+    ctx.fillRect(-5,-10,10,8);
+
+    /* face */
+    const skin=ctx.createRadialGradient(-5,-25,2,0,-20,16);
+    skin.addColorStop(0,"#ffe0c2");
+    skin.addColorStop(1,"#b86f52");
+    ctx.fillStyle=skin;
+    ctx.beginPath();
+    ctx.ellipse(0,-21,14,16,0,0,Math.PI*2);
+    ctx.fill();
+
+    /* hair */
+    ctx.fillStyle="#24170f";
+    ctx.beginPath();
+    ctx.moveTo(-14,-20);
+    ctx.quadraticCurveTo(-12,-37,2,-36);
+    ctx.quadraticCurveTo(15,-35,14,-19);
+    ctx.lineTo(8,-25);
+    ctx.lineTo(3,-30);
+    ctx.lineTo(-3,-24);
+    ctx.lineTo(-8,-29);
+    ctx.closePath();
+    ctx.fill();
+
+    /* eyebrows + eyes */
+    ctx.strokeStyle="#4b2a20";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(-9,-21); ctx.lineTo(-3,-22);
+    ctx.moveTo(3,-22); ctx.lineTo(9,-21);
+    ctx.stroke();
+
+    ctx.fillStyle="#111827";
+    ctx.beginPath();
+    ctx.arc(-6,-18,2,0,Math.PI*2);
+    ctx.arc(6,-18,2,0,Math.PI*2);
+    ctx.fill();
+
+    /* nose / mouth */
+    ctx.strokeStyle="#7c4638";
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(0,-17); ctx.lineTo(-1,-12); ctx.lineTo(3,-12);
+    ctx.moveTo(-4,-8); ctx.quadraticCurveTo(0,-6,4,-8);
+    ctx.stroke();
+
+    /* sword arm */
+    ctx.save();
+    ctx.rotate(swing*dir);
+    ctx.fillStyle="#d59b78";
+    ctx.beginPath();
+    ctx.arc(16,5,5,0,Math.PI*2);
+    ctx.fill();
+
+    /* sword */
+    ctx.translate(20,3);
+    ctx.rotate(-0.55*dir);
+    ctx.fillStyle="#e5e7eb";
+    ctx.beginPath();
+    ctx.moveTo(0,-4);
+    ctx.lineTo(29,0);
+    ctx.lineTo(0,4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle="#f8fafc";
+    ctx.beginPath();
+    ctx.moveTo(3,-2); ctx.lineTo(25,0); ctx.lineTo(3,1); ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle="#b7791f";
+    ctx.fillRect(-4,-6,6,12);
+    ctx.restore();
+
+    /* shield */
+    ctx.fillStyle="#334155";
+    ctx.beginPath();
+    ctx.moveTo(-18,2);
+    ctx.lineTo(-28,7);
+    ctx.lineTo(-25,21);
+    ctx.lineTo(-18,27);
+    ctx.lineTo(-11,21);
+    ctx.lineTo(-8,7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle="#94a3b8";
+    ctx.lineWidth=2;
+    ctx.stroke();
+    ctx.fillStyle="#38bdf8";
+    ctx.beginPath();
+    ctx.moveTo(-18,8); ctx.lineTo(-22,11); ctx.lineTo(-18,21);
+    ctx.lineTo(-14,11); ctx.closePath();
+    ctx.fill();
+
+    /* direction glow */
+    if(selectedSkill){
+        ctx.strokeStyle="rgba(96,165,250,.35)";
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.arc(0,0,34+Math.sin(t*5)*2,0,Math.PI*2);
+        ctx.stroke();
+    }
 
     ctx.restore();
 }
 
 
-/* =========================
-   DRAW MONSTER
-========================= */
-
 function drawMonster(m){
 
+    const t=performance.now()/1000;
+    const bob=Math.sin(t*5+m.x*.01)*1.5;
+    const r=m.radius;
+    const type=m.type||"goblin";
+
     ctx.save();
+    ctx.translate(m.x,m.y+bob);
 
-    ctx.translate(
-        m.x,
-        m.y
-    );
-
-    /*
-       Shadow
-    */
-
-    ctx.fillStyle=
-    "rgba(0,0,0,.35)";
-
+    /* shadow */
+    ctx.fillStyle="rgba(0,0,0,.42)";
     ctx.beginPath();
-
-    ctx.ellipse(
-        0,
-        m.radius+7,
-        m.radius,
-        7,
-        0,
-        0,
-        Math.PI*2
-    );
-
+    ctx.ellipse(0,r+7,r*1.05,7,0,0,Math.PI*2);
     ctx.fill();
 
-    /*
-       Body
-    */
-
-    ctx.fillStyle=
-    m.flash>0?
-    "#ffffff":
-    m.color;
-
-    ctx.beginPath();
-
-    ctx.arc(
-        0,
-        0,
-        m.radius,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-    /*
-       Horns
-    */
-
-    ctx.fillStyle=
-    "#4c1d1d";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        -m.radius*.5,
-        -m.radius*.5
-    );
-
-    ctx.lineTo(
-        -m.radius,
-        -m.radius*1.3
-    );
-
-    ctx.lineTo(
-        -m.radius*.1,
-        -m.radius*.7
-    );
-
-    ctx.fill();
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        m.radius*.5,
-        -m.radius*.5
-    );
-
-    ctx.lineTo(
-        m.radius,
-        -m.radius*1.3
-    );
-
-    ctx.lineTo(
-        m.radius*.1,
-        -m.radius*.7
-    );
-
-    ctx.fill();
-
-    /*
-       Eyes
-    */
-
-    ctx.fillStyle=
-    "white";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        -7,-4,
-        5,
-        0,
-        Math.PI*2
-    );
-
-    ctx.arc(
-        7,-4,
-        5,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-    ctx.fillStyle=
-    "black";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        -7,-4,
-        2,
-        0,
-        Math.PI*2
-    );
-
-    ctx.arc(
-        7,-4,
-        2,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-    /*
-       HP
-    */
-
-    let bw=
-    m.radius*2.4;
-
-    ctx.fillStyle=
-    "#111";
-
-    ctx.fillRect(
-        -bw/2,
-        -m.radius-15,
-        bw,
-        6
-    );
-
-    ctx.fillStyle=
-    "#22c55e";
-
-    ctx.fillRect(
-        -bw/2,
-        -m.radius-15,
-        bw*
-        Math.max(
-            0,
-            m.hp/m.maxHp
-        ),
-        6
-    );
-
-    /*
-       Frozen
-    */
-
-    if(m.frozen>0){
-
-        ctx.strokeStyle=
-        "#bae6fd";
-
-        ctx.lineWidth=4;
-
+    if(type==="brute"){
+        /* big armored demon */
+        ctx.fillStyle="#351313";
         ctx.beginPath();
+        ctx.moveTo(-r*.8,-r*.5);
+        ctx.lineTo(-r*1.25,-r*1.25);
+        ctx.lineTo(-r*.45,-r*.85);
+        ctx.lineTo(0,-r*1.1);
+        ctx.lineTo(r*.45,-r*.85);
+        ctx.lineTo(r*1.25,-r*1.25);
+        ctx.lineTo(r*.8,-r*.5);
+        ctx.closePath();
+        ctx.fill();
 
-        ctx.arc(
-            0,
-            0,
-            m.radius+8,
-            0,
-            Math.PI*2
-        );
+        const body=ctx.createRadialGradient(-r*.35,-r*.35,2,0,0,r*1.2);
+        body.addColorStop(0,"#f87171");
+        body.addColorStop(.5,"#b91c1c");
+        body.addColorStop(1,"#450a0a");
+        ctx.fillStyle=body;
+        ctx.beginPath();
+        ctx.ellipse(0,2,r*.9,r*1.05,0,0,Math.PI*2);
+        ctx.fill();
 
+        ctx.fillStyle="#7f1d1d";
+        ctx.fillRect(-r*1.15,-2,r*.45,10);
+        ctx.fillRect(r*.7,-2,r*.45,10);
+    }else if(type==="mage"){
+        /* shadow mage */
+        ctx.fillStyle="#27134d";
+        ctx.beginPath();
+        ctx.moveTo(-r*1.1,r);
+        ctx.lineTo(-r*.7,-r*.6);
+        ctx.quadraticCurveTo(0,-r*1.2,r*.7,-r*.6);
+        ctx.lineTo(r*1.1,r);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle="#7e22ce";
+        ctx.beginPath();
+        ctx.arc(0,-r*.25,r*.65,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#c084fc";
+        ctx.beginPath();
+        ctx.arc(-r*.28,-r*.3,3,0,Math.PI*2);
+        ctx.arc(r*.28,-r*.3,3,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.strokeStyle="rgba(216,180,254,.7)";
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.arc(0,0,r+7+t%1*2,0,Math.PI*2);
         ctx.stroke();
+    }else{
+        /* goblin */
+        const body=ctx.createRadialGradient(-r*.35,-r*.45,2,0,0,r);
+        body.addColorStop(0,"#86efac");
+        body.addColorStop(.5,"#22c55e");
+        body.addColorStop(1,"#14532d");
+        ctx.fillStyle=body;
+        ctx.beginPath();
+        ctx.ellipse(0,3,r*.9,r,0,0,Math.PI*2);
+        ctx.fill();
+
+        /* ears */
+        ctx.fillStyle="#15803d";
+        ctx.beginPath();
+        ctx.moveTo(-r*.55,-r*.35);
+        ctx.lineTo(-r*1.25,-r*.7);
+        ctx.lineTo(-r*.7,r*.15);
+        ctx.closePath();
+        ctx.moveTo(r*.55,-r*.35);
+        ctx.lineTo(r*1.25,-r*.7);
+        ctx.lineTo(r*.7,r*.15);
+        ctx.closePath();
+        ctx.fill();
+
+        /* horns */
+        ctx.fillStyle="#f1f5f9";
+        ctx.beginPath();
+        ctx.moveTo(-r*.45,-r*.7);
+        ctx.lineTo(-r*.8,-r*1.35);
+        ctx.lineTo(-r*.15,-r*.8);
+        ctx.closePath();
+        ctx.moveTo(r*.45,-r*.7);
+        ctx.lineTo(r*.8,-r*1.35);
+        ctx.lineTo(r*.15,-r*.8);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    /* face details for all */
+    ctx.fillStyle="#fef3c7";
+    ctx.beginPath();
+    ctx.ellipse(-r*.3,-r*.2,r*.18,r*.13,0,0,Math.PI*2);
+    ctx.ellipse(r*.3,-r*.2,r*.18,r*.13,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#111827";
+    ctx.beginPath();
+    ctx.arc(-r*.27,-r*.2,r*.07,0,Math.PI*2);
+    ctx.arc(r*.27,-r*.2,r*.07,0,Math.PI*2);
+    ctx.fill();
+
+    /* mouth */
+    ctx.strokeStyle="#240b0b";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.arc(0,r*.15,r*.28,0.15,Math.PI-0.15);
+    ctx.stroke();
+
+    /* weapon/claws */
+    ctx.strokeStyle=type==="brute"?"#d1d5db":"#d1fae5";
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(-r*.7,r*.35);
+    ctx.lineTo(-r*1.05,r*.75);
+    ctx.moveTo(r*.7,r*.35);
+    ctx.lineTo(r*1.05,r*.75);
+    ctx.stroke();
+
+    /* hit flash */
+    if(m.flash>0){
+        ctx.fillStyle="rgba(255,255,255,.7)";
+        ctx.beginPath();
+        ctx.arc(0,0,r*1.05,0,Math.PI*2);
+        ctx.fill();
+    }
+
+    /* HP bar */
+    const bw=r*2.5;
+    ctx.fillStyle="rgba(0,0,0,.75)";
+    ctx.fillRect(-bw/2,-r-17,bw,7);
+    ctx.fillStyle=m.hp/m.maxHp>.5?"#22c55e":m.hp/m.maxHp>.25?"#f59e0b":"#ef4444";
+    ctx.fillRect(-bw/2,-r-17,bw*Math.max(0,m.hp/m.maxHp),7);
+    ctx.strokeStyle="rgba(255,255,255,.25)";
+    ctx.lineWidth=1;
+    ctx.strokeRect(-bw/2,-r-17,bw,7);
+
+    /* frozen ring */
+    if(m.frozen>0){
+        ctx.strokeStyle="#bae6fd";
+        ctx.lineWidth=4;
+        ctx.shadowBlur=12;
+        ctx.shadowColor="#38bdf8";
+        ctx.beginPath();
+        ctx.arc(0,0,r+9,0,Math.PI*2);
+        ctx.stroke();
+        ctx.shadowBlur=0;
     }
 
     ctx.restore();
@@ -2303,39 +2262,11 @@ function drawTexts(){
 ========================= */
 
 function updateHUD(){
-
-    document.getElementById(
-        "level"
-    ).textContent=
-    player.level;
-
-    document.getElementById(
-        "coins"
-    ).textContent=
-    player.coins;
-
-    document.getElementById(
-        "stage"
-    ).textContent=
-    stage;
-
-    document.getElementById(
-        "hpBar"
-    ).style.width=
-    (
-        player.hp/
-        player.maxHp*
-        100
-    )+"%";
-
-    document.getElementById(
-        "xpBar"
-    ).style.width=
-    (
-        player.xp/
-        (player.level*100)*
-        100
-    )+"%";
+document.getElementById("level").textContent=player.level;
+document.getElementById("coins").textContent=player.coins;
+document.getElementById("stage").textContent=stage;
+document.getElementById("hpBar").style.width=Math.max(0,Math.min(100,player.hp/player.maxHp*100))+"%";
+document.getElementById("xpBar").style.width=Math.max(0,Math.min(100,player.xp/(player.level*100)*100))+"%";
 }
 
 
@@ -2344,47 +2275,13 @@ function updateHUD(){
 ========================= */
 
 function updateSkillUI(){
-
-    document
-    .querySelectorAll(".skill")
-    .forEach(button=>{
-
-        let name=
-        button.dataset.skill;
-
-        let s=
-        skillData[name];
-
-        if(
-            player.level>=
-            s.level
-        ){
-
-            button.disabled=false;
-
-            button.classList.remove(
-                "locked"
-            );
-
-            button.querySelector(
-                "span"
-            ).textContent=
-            "Unlocked";
-
-        }else{
-
-            button.disabled=true;
-
-            button.classList.add(
-                "locked"
-            );
-
-            button.querySelector(
-                "span"
-            ).textContent=
-            "Lv "+s.level;
-        }
-    });
+const list=document.getElementById("ownedSkillsList");
+if(list){
+list.innerHTML="";
+const names=Object.keys(ownedSkills);
+if(!names.length)list.innerHTML='<div class="ownedRow"><div class="ownedInfo"><div class="ownedName">No skills yet</div><div class="ownedDesc">Collect the golden skill card to begin.</div></div></div>';
+else names.forEach(name=>{const s=skillData[name],row=document.createElement("div");row.className="ownedRow";row.innerHTML='<div class="ownedIcon">'+s.icon+'</div><div class="ownedInfo"><div class="ownedName">'+s.name+'</div><div class="ownedDesc">'+s.desc+'</div></div><div class="ownedRank">Lv.'+ownedSkills[name]+'</div>';list.appendChild(row);});
+}
 }
 
 
@@ -2404,6 +2301,7 @@ function showMessage(text){
     box.textContent=text;
 
     box.style.opacity=1;
+    box.style.pointerEvents="none";
 
     clearTimeout(
         messageTimer
@@ -2422,144 +2320,40 @@ function showMessage(text){
 /* =========================
    BUTTON EVENTS
 ========================= */
+document.getElementById("skillButton").onclick=()=>{renderBook();document.getElementById("bookOverlay").style.display="block";};
+document.getElementById("closeSkill").onclick=()=>document.getElementById("skillPanel").style.display="none";
+document.getElementById("closeBook").onclick=()=>document.getElementById("bookOverlay").style.display="none";
 
-document.getElementById(
-    "skillButton"
-).onclick=()=>{
-
-    updateSkillUI();
-
-    document.getElementById(
-        "skillPanel"
-    ).style.display=
-    "block";
-};
-
-
-document.getElementById(
-    "closeSkill"
-).onclick=()=>{
-
-    document.getElementById(
-        "skillPanel"
-    ).style.display=
-    "none";
-};
-
-
-document
-.querySelectorAll(".skill")
-.forEach(button=>{
-
-    button.onclick=()=>{
-
-        let name=
-        button.dataset.skill;
-
-        if(
-            player.level<
-            skillData[name].level
-        ){
-
-            showMessage(
-                "🔒 Unlock at Level "+
-                skillData[name].level
-            );
-
-            return;
-        }
-
-        selectSkill(name);
-    };
-});
-
-
-document.getElementById(
-    "useSkill"
-).onclick=()=>{
-
-    if(!selectedSkill){
-        showMessage("⚡ Select a skill first");
-        return;
-    }
-
-    useSkill();
-};
-
+function renderBook(){
+const list=document.getElementById("bookList");list.innerHTML="";
+[["🦇","⚔️","❤️"],["❄️","➕","💚"],["🔥","⏱️","💧"],["💥","⚔️","⭐"],["❤️","➕","⚔️"],["⚡","⏱️","🌩️"]].forEach(r=>{let d=document.createElement("div");d.className="recipe";d.innerHTML="<span>"+r[0]+"</span> ＋ <span>"+r[1]+"</span> ＝ <span>"+r[2]+"</span>";list.appendChild(d);});
+}
+document.getElementById("bookOverlay").addEventListener("click",e=>{if(e.target.classList.contains("bookShade"))document.getElementById("bookOverlay").style.display="none";});
+document.getElementById("choiceOverlay").addEventListener("click",e=>{if(e.target.classList.contains("choiceShade"))showMessage("Choose one skill!");});
 
 /* =========================
    GAME LOOP
 ========================= */
 
 function gameLoop(){
-
-    movePlayer();
-
-    moveMonsters();
-
-    autoAttack();
-
-    automaticSkill();
-
-    updateProjectiles();
-
-    updateParticles();
-
-    updateEffects();
-
-    updateTexts();
-
-    maintainMonsters();
-
-    drawBackground();
-
-    drawEffects();
-
-    drawProjectiles();
-
-    drawParticles();
-
-    for(
-        const m of monsters
-    ){
-
-        drawMonster(m);
-    }
-
-    drawPlayer();
-
-    drawTexts();
-
-    drawJoystick();
-
-    updateHUD();
-
-    requestAnimationFrame(
-        gameLoop
-    );
+if(player.dead){
+drawBackground();drawXpGems();drawEffects();drawProjectiles();drawParticles();for(const m of monsters)drawMonster(m);drawPickupCard();drawPlayer();drawTexts();updateHUD();return;
 }
-
+movePlayer();
+if(!choiceOpen){
+moveMonsters();autoAttack();automaticSkill();updateProjectiles();updateParticles();updateEffects();updateTexts();updateXpGems();maintainMonsters();checkSkillPickup();
+}else{updateParticles();updateEffects();updateTexts();}
+drawBackground();drawXpGems();drawEffects();drawProjectiles();drawParticles();for(const m of monsters)drawMonster(m);drawPickupCard();drawPlayer();drawTexts();drawJoystick();updateHUD();requestAnimationFrame(gameLoop);
+}
 
 /* =========================
    START
 ========================= */
 
 resize();
-
-for(
-    let i=0;
-    i<5;
-    i++
-){
-
-    createMonster();
-}
-
-updateSkillUI();
-
-updateHUD();
-
-gameLoop();
+pickupCard={active:true,x:W/2,y:H/2-115,pulse:0};
+for(let i=0;i<5;i++)createMonster();
+updateSkillUI();updateHUD();gameLoop();
 
 </script>
 
