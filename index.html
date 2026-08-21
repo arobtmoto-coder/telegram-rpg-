@@ -1,0 +1,2633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
+
+<title>Element RPG</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial,sans-serif;
+    background:#14232b;
+}
+
+#game{
+    position:fixed;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    touch-action:none;
+}
+
+#hud{
+    position:fixed;
+    top:15px;
+    left:15px;
+    right:15px;
+
+    background:rgba(10,15,20,.92);
+    border-radius:18px;
+    padding:15px;
+
+    color:white;
+    z-index:10;
+}
+
+.top{
+    display:flex;
+    justify-content:space-between;
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.barTitle{
+    font-size:14px;
+    margin:5px 0;
+}
+
+.bar{
+    width:100%;
+    height:15px;
+    background:#30343a;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+#hpBar{
+    height:100%;
+    width:100%;
+    background:#ef4444;
+}
+
+#xpBar{
+    height:100%;
+    width:0%;
+    background:#facc15;
+}
+
+#skillButton{
+    position:fixed;
+    right:20px;
+    bottom:25px;
+
+    border:0;
+    border-radius:20px;
+
+    padding:17px 25px;
+
+    background:#7c3aed;
+    color:white;
+
+    font-size:17px;
+    font-weight:bold;
+
+    z-index:20;
+}
+
+#useSkill{
+    position:fixed;
+    left:20px;
+    bottom:25px;
+
+    border:0;
+    border-radius:20px;
+
+    padding:17px 25px;
+
+    background:#334155;
+    color:white;
+
+    font-size:16px;
+    font-weight:bold;
+
+    z-index:20;
+}
+
+#skillPanel{
+    display:none;
+
+    position:fixed;
+
+    left:50%;
+    top:50%;
+
+    transform:translate(-50%,-50%);
+
+    width:90%;
+    max-width:420px;
+
+    max-height:80vh;
+
+    overflow-y:auto;
+
+    background:#111827;
+
+    border:2px solid #475569;
+
+    border-radius:22px;
+
+    padding:20px;
+
+    z-index:50;
+
+    color:white;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.7);
+}
+
+#skillPanel h2{
+    margin-top:0;
+    text-align:center;
+}
+
+.skill{
+    width:100%;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin:8px 0;
+
+    padding:15px;
+
+    border:0;
+    border-radius:15px;
+
+    background:#263244;
+
+    color:white;
+
+    font-size:15px;
+    font-weight:bold;
+
+    text-align:left;
+}
+
+.skill span{
+    font-size:12px;
+    opacity:.8;
+}
+
+.skill.locked{
+    opacity:.45;
+}
+
+#closeSkill{
+    width:100%;
+
+    margin-top:12px;
+
+    padding:13px;
+
+    border:0;
+    border-radius:12px;
+
+    background:#374151;
+
+    color:white;
+
+    font-weight:bold;
+}
+
+#message{
+    position:fixed;
+
+    left:50%;
+    top:30%;
+
+    transform:translateX(-50%);
+
+    padding:12px 20px;
+
+    background:rgba(0,0,0,.8);
+
+    color:white;
+
+    border-radius:15px;
+
+    font-weight:bold;
+
+    opacity:0;
+
+    transition:.2s;
+
+    z-index:100;
+
+    pointer-events:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud">
+
+    <div class="top">
+
+        <div>
+            ⭐ Lv <span id="level">1</span>
+        </div>
+
+        <div>
+            🪙 <span id="coins">0</span>
+        </div>
+
+        <div>
+            🏆 Stage <span id="stage">1</span>
+        </div>
+
+    </div>
+
+    <div class="barTitle">
+        ❤️ HP
+    </div>
+
+    <div class="bar">
+        <div id="hpBar"></div>
+    </div>
+
+    <div class="barTitle">
+        ✨ XP
+    </div>
+
+    <div class="bar">
+        <div id="xpBar"></div>
+    </div>
+
+</div>
+
+<button id="useSkill">
+    ⚡ Select Skill
+</button>
+
+<button id="skillButton">
+    ⚡ SKILLS
+</button>
+
+<div id="skillPanel">
+
+    <h2>⚡ ELEMENT SKILLS</h2>
+
+    <button class="skill" data-skill="fireball">
+        <div>🔥 Fireball</div>
+        <span>Lv 1</span>
+    </button>
+
+    <button class="skill locked" data-skill="water">
+        <div>💧 Water Bolt</div>
+        <span>Lv 2</span>
+    </button>
+
+    <button class="skill locked" data-skill="ice">
+        <div>❄️ Ice Shard</div>
+        <span>Lv 3</span>
+    </button>
+
+    <button class="skill locked" data-skill="flame">
+        <div>🔥 Flame Wave</div>
+        <span>Lv 3</span>
+    </button>
+
+    <button class="skill locked" data-skill="thunder">
+        <div>⚡ Thunder</div>
+        <span>Lv 5</span>
+    </button>
+
+    <button class="skill locked" data-skill="tsunami">
+        <div>🌊 Tsunami</div>
+        <span>Lv 5</span>
+    </button>
+
+    <button class="skill locked" data-skill="blizzard">
+        <div>🌨️ Blizzard</div>
+        <span>Lv 7</span>
+    </button>
+
+    <button id="closeSkill">
+        CLOSE
+    </button>
+
+</div>
+
+<div id="message"></div>
+
+<script>
+
+"use strict";
+
+
+/* =========================
+   CANVAS
+========================= */
+
+const canvas =
+document.getElementById("game");
+
+const ctx =
+canvas.getContext("2d");
+
+let W=0;
+let H=0;
+
+function resize(){
+
+    W=window.innerWidth;
+    H=window.innerHeight;
+
+    canvas.width=W;
+    canvas.height=H;
+
+    if(player.x===0){
+
+        player.x=W/2;
+        player.y=H/2;
+    }
+}
+
+window.addEventListener(
+    "resize",
+    resize
+);
+
+
+/* =========================
+   PLAYER
+========================= */
+
+const player={
+
+    x:0,
+    y:0,
+
+    speed:4,
+
+    hp:100,
+    maxHp:100,
+
+    level:1,
+    xp:0,
+
+    coins:0,
+
+    attack:15,
+
+    lastAttack:0,
+
+    facingX:1,
+    facingY:0
+};
+
+
+/* =========================
+   GAME DATA
+========================= */
+
+let stage=1;
+
+let kills=0;
+
+let monsters=[];
+
+let projectiles=[];
+
+let effects=[];
+
+let particles=[];
+
+let texts=[];
+
+let selectedSkill=null;
+
+let skillCooldowns={};
+
+
+/* =========================
+   SKILLS
+========================= */
+
+const skillData={
+
+    fireball:{
+        level:1,
+        damage:30,
+        cooldown:1000,
+        type:"projectile",
+        color:"#ff4500",
+        speed:8
+    },
+
+    water:{
+        level:2,
+        damage:35,
+        cooldown:1200,
+        type:"projectile",
+        color:"#38bdf8",
+        speed:9
+    },
+
+    ice:{
+        level:3,
+        damage:40,
+        cooldown:1300,
+        type:"projectile",
+        color:"#bae6fd",
+        speed:8
+    },
+
+    flame:{
+        level:3,
+        damage:55,
+        cooldown:2500,
+        type:"area",
+        color:"#ff6b00",
+        radius:140
+    },
+
+    thunder:{
+        level:5,
+        damage:65,
+        cooldown:1800,
+        type:"thunder",
+        color:"#fde047"
+    },
+
+    tsunami:{
+        level:5,
+        damage:75,
+        cooldown:3500,
+        type:"area",
+        color:"#0ea5e9",
+        radius:190
+    },
+
+    blizzard:{
+        level:7,
+        damage:90,
+        cooldown:4500,
+        type:"area",
+        color:"#dbeafe",
+        radius:200
+    }
+
+};
+
+
+/* =========================
+   JOYSTICK
+========================= */
+
+let joy={
+
+    active:false,
+
+    startX:0,
+    startY:0,
+
+    x:0,
+    y:0,
+
+    radius:60
+};
+
+
+canvas.addEventListener(
+"pointerdown",
+e=>{
+
+    joy.active=true;
+
+    joy.startX=e.clientX;
+    joy.startY=e.clientY;
+
+    joy.x=0;
+    joy.y=0;
+
+});
+
+
+canvas.addEventListener(
+"pointermove",
+e=>{
+
+    if(!joy.active)
+        return;
+
+    let dx=
+    e.clientX-joy.startX;
+
+    let dy=
+    e.clientY-joy.startY;
+
+    let d=
+    Math.hypot(dx,dy);
+
+    if(d>joy.radius){
+
+        dx=
+        dx/d*
+        joy.radius;
+
+        dy=
+        dy/d*
+        joy.radius;
+    }
+
+    joy.x=
+    dx/joy.radius;
+
+    joy.y=
+    dy/joy.radius;
+
+});
+
+
+function stopJoy(){
+
+    joy.active=false;
+
+    joy.x=0;
+    joy.y=0;
+}
+
+
+canvas.addEventListener(
+"pointerup",
+stopJoy
+);
+
+canvas.addEventListener(
+"pointercancel",
+stopJoy
+);
+
+
+/* =========================
+   PLAYER MOVEMENT
+========================= */
+
+function movePlayer(){
+
+    let dx=joy.x;
+    let dy=joy.y;
+
+    let len=
+    Math.hypot(dx,dy);
+
+    if(len>0){
+
+        dx/=len;
+        dy/=len;
+
+        player.x+=
+        dx*player.speed;
+
+        player.y+=
+        dy*player.speed;
+
+        player.facingX=dx;
+        player.facingY=dy;
+    }
+
+    player.x=
+    Math.max(
+        30,
+        Math.min(
+            W-30,
+            player.x
+        )
+    );
+
+    player.y=
+    Math.max(
+        120,
+        Math.min(
+            H-40,
+            player.y
+        )
+    );
+}
+
+
+/* =========================
+   MONSTERS
+========================= */
+
+function createMonster(){
+
+    let types=[
+
+        {
+            color:"#22c55e",
+            hp:50,
+            speed:.8,
+            radius:22
+        },
+
+        {
+            color:"#ef4444",
+            hp:70,
+            speed:.65,
+            radius:24
+        },
+
+        {
+            color:"#9333ea",
+            hp:100,
+            speed:.5,
+            radius:27
+        }
+
+    ];
+
+    let t=
+    types[
+        Math.floor(
+            Math.random()*
+            types.length
+        )
+    ];
+
+    let x,y;
+
+    do{
+
+        x=
+        40+
+        Math.random()*
+        (W-80);
+
+        y=
+        130+
+        Math.random()*
+        Math.max(
+            100,
+            H-170
+        );
+
+    }while(
+        Math.hypot(
+            x-player.x,
+            y-player.y
+        )<200
+    );
+
+    let hp=
+    t.hp+
+    (stage-1)*15;
+
+    monsters.push({
+
+        x:x,
+        y:y,
+
+        radius:t.radius,
+
+        color:t.color,
+
+        hp:hp,
+
+        maxHp:hp,
+
+        speed:
+        t.speed+
+        stage*.02,
+
+        frozen:0,
+
+        flash:0
+    });
+}
+
+
+function maintainMonsters(){
+
+    let wanted=
+    Math.min(
+        4+stage,
+        9
+    );
+
+    while(
+        monsters.length<
+        wanted
+    ){
+
+        createMonster();
+    }
+}
+
+
+/* =========================
+   MONSTER MOVEMENT
+========================= */
+
+function moveMonsters(){
+
+    for(
+        const m of monsters
+    ){
+
+        if(m.flash>0)
+            m.flash--;
+
+        if(m.frozen>0){
+
+            m.frozen--;
+
+            continue;
+        }
+
+        let dx=
+        player.x-m.x;
+
+        let dy=
+        player.y-m.y;
+
+        let d=
+        Math.hypot(dx,dy);
+
+        if(d>60){
+
+            m.x+=
+            dx/d*
+            m.speed;
+
+            m.y+=
+            dy/d*
+            m.speed;
+        }
+    }
+}
+
+
+/* =========================
+   NORMAL ATTACK
+========================= */
+
+function autoAttack(){
+
+    let now=
+    performance.now();
+
+    if(
+        now-player.lastAttack<
+        650
+    )
+        return;
+
+    let target=null;
+
+    let closest=99999;
+
+    for(
+        const m of monsters
+    ){
+
+        let d=
+        Math.hypot(
+            m.x-player.x,
+            m.y-player.y
+        );
+
+        if(
+            d<85 &&
+            d<closest
+        ){
+
+            closest=d;
+            target=m;
+        }
+    }
+
+    if(!target)
+        return;
+
+    player.lastAttack=now;
+
+    hitMonster(
+        target,
+        player.attack,
+        "#ffffff"
+    );
+}
+
+
+/* =========================
+   DAMAGE MONSTER
+========================= */
+
+function hitMonster(
+    monster,
+    damage,
+    color
+){
+
+    monster.hp-=damage;
+
+    monster.flash=8;
+
+    createParticles(
+        monster.x,
+        monster.y,
+        color,
+        8
+    );
+
+    damageText(
+        monster.x,
+        monster.y-30,
+        damage,
+        color
+    );
+
+    if(monster.hp<=0){
+
+        let index=
+        monsters.indexOf(
+            monster
+        );
+
+        if(index!==-1){
+
+            monsters.splice(
+                index,
+                1
+            );
+        }
+
+        player.coins+=5;
+
+        player.xp+=20;
+
+        kills++;
+
+        if(
+            kills>=
+            5+stage*2
+        ){
+
+            kills=0;
+
+            stage++;
+
+            showMessage(
+                "🏆 STAGE "+stage
+            );
+        }
+
+        levelCheck();
+    }
+}
+
+
+/* =========================
+   LEVEL
+========================= */
+
+function levelCheck(){
+
+    let required=
+    player.level*100;
+
+    if(
+        player.xp>=required
+    ){
+
+        player.xp-=required;
+
+        player.level++;
+
+        player.attack+=5;
+
+        player.maxHp+=15;
+
+        player.hp=
+        player.maxHp;
+
+        showMessage(
+            "⭐ LEVEL "+
+            player.level+
+            "!"
+        );
+
+        updateSkillUI();
+    }
+}
+
+
+/* =========================
+   SKILL SELECTION
+========================= */
+
+function selectSkill(name){
+
+    const skill=
+    skillData[name];
+
+    if(
+        player.level<
+        skill.level
+    ){
+
+        showMessage(
+            "🔒 Unlock at Level "+
+            skill.level
+        );
+
+        return;
+    }
+
+    selectedSkill=name;
+
+    document.getElementById(
+        "useSkill"
+    ).textContent=
+    "⚡ "+
+    getSkillName(name);
+
+    /*
+       IMPORTANT:
+       PANEL CLOSES AUTOMATICALLY
+    */
+
+    document.getElementById(
+        "skillPanel"
+    ).style.display=
+    "none";
+
+    showMessage(
+        getSkillName(name)+
+        " Selected!"
+    );
+}
+
+
+function getSkillName(name){
+
+    const names={
+
+        fireball:"🔥 Fireball",
+
+        water:"💧 Water Bolt",
+
+        ice:"❄️ Ice Shard",
+
+        flame:"🔥 Flame Wave",
+
+        thunder:"⚡ Thunder",
+
+        tsunami:"🌊 Tsunami",
+
+        blizzard:"🌨️ Blizzard"
+
+    };
+
+    return names[name];
+}
+
+
+/* =========================
+   USE SKILL
+========================= */
+
+function useSkill(){
+
+    if(!selectedSkill){
+
+        showMessage(
+            "⚡ Select a skill first"
+        );
+
+        return;
+    }
+
+    const s=
+    skillData[selectedSkill];
+
+    let now=
+    performance.now();
+
+    let last=
+    skillCooldowns[
+        selectedSkill
+    ]||0;
+
+    if(
+        now-last<
+        s.cooldown
+    ){
+
+        let sec=
+        (
+            s.cooldown-
+            (now-last)
+        )/1000;
+
+        showMessage(
+            "⏳ "+
+            sec.toFixed(1)+
+            "s"
+        );
+
+        return;
+    }
+
+    skillCooldowns[
+        selectedSkill
+    ]=now;
+
+
+    if(
+        s.type===
+        "projectile"
+    ){
+
+        castProjectile(s);
+
+    }
+
+    else if(
+        s.type===
+        "area"
+    ){
+
+        castArea(s);
+
+    }
+
+    else if(
+        s.type===
+        "thunder"
+    ){
+
+        castThunder(s);
+    }
+}
+
+
+/* =========================
+   PROJECTILE
+========================= */
+
+function castProjectile(s){
+
+    let target=
+    findNearest();
+
+    if(!target){
+
+        showMessage(
+            "No monster!"
+        );
+
+        return;
+    }
+
+    projectiles.push({
+
+        x:player.x,
+        y:player.y,
+
+        target:target,
+
+        speed:s.speed,
+
+        damage:s.damage,
+
+        color:s.color,
+
+        type:selectedSkill,
+
+        life:100
+    });
+}
+
+
+function findNearest(){
+
+    let target=null;
+
+    let best=999999;
+
+    for(
+        const m of monsters
+    ){
+
+        let d=
+        Math.hypot(
+            m.x-player.x,
+            m.y-player.y
+        );
+
+        if(d<best){
+
+            best=d;
+            target=m;
+        }
+    }
+
+    return target;
+}
+
+
+/* =========================
+   PROJECTILE UPDATE
+========================= */
+
+function updateProjectiles(){
+
+    for(
+        let i=
+        projectiles.length-1;
+        i>=0;
+        i--
+    ){
+
+        let p=
+        projectiles[i];
+
+        if(
+            !monsters.includes(
+                p.target
+            )
+        ){
+
+            projectiles.splice(i,1);
+
+            continue;
+        }
+
+        let dx=
+        p.target.x-p.x;
+
+        let dy=
+        p.target.y-p.y;
+
+        let d=
+        Math.hypot(dx,dy);
+
+        createParticles(
+            p.x,
+            p.y,
+            p.color,
+            1
+        );
+
+        if(d<15){
+
+            hitMonster(
+                p.target,
+                p.damage,
+                p.color
+            );
+
+            if(
+                p.type==="ice"
+            ){
+
+                p.target.frozen=
+                100;
+            }
+
+            effects.push({
+
+                type:"impact",
+
+                x:p.target.x,
+                y:p.target.y,
+
+                radius:10,
+
+                max:45,
+
+                color:p.color,
+
+                life:20
+            });
+
+            projectiles.splice(i,1);
+
+            continue;
+        }
+
+        p.x+=
+        dx/d*
+        p.speed;
+
+        p.y+=
+        dy/d*
+        p.speed;
+
+        p.life--;
+
+        if(p.life<=0)
+            projectiles.splice(i,1);
+    }
+}
+
+
+/* =========================
+   AREA SKILLS
+========================= */
+
+function castArea(s){
+
+    effects.push({
+
+        type:selectedSkill,
+
+        x:player.x,
+        y:player.y,
+
+        radius:10,
+
+        max:s.radius,
+
+        color:s.color,
+
+        life:45
+    });
+
+    for(
+        const m of [...monsters]
+    ){
+
+        let d=
+        Math.hypot(
+            m.x-player.x,
+            m.y-player.y
+        );
+
+        if(
+            d<=s.radius
+        ){
+
+            hitMonster(
+                m,
+                s.damage,
+                s.color
+            );
+
+            if(
+                selectedSkill===
+                "blizzard"
+            ){
+
+                m.frozen=150;
+            }
+        }
+    }
+}
+
+
+/* =========================
+   THUNDER
+========================= */
+
+function castThunder(s){
+
+    let target=
+    findNearest();
+
+    if(!target){
+
+        showMessage(
+            "No monster!"
+        );
+
+        return;
+    }
+
+    hitMonster(
+        target,
+        s.damage,
+        s.color
+    );
+
+    effects.push({
+
+        type:"thunder",
+
+        x:target.x,
+        y:target.y,
+
+        color:s.color,
+
+        life:25
+    });
+}
+
+
+/* =========================
+   PARTICLES
+========================= */
+
+function createParticles(
+    x,y,color,count
+){
+
+    for(
+        let i=0;
+        i<count;
+        i++
+    ){
+
+        let a=
+        Math.random()*
+        Math.PI*2;
+
+        let speed=
+        1+
+        Math.random()*4;
+
+        particles.push({
+
+            x:x,
+            y:y,
+
+            vx:
+            Math.cos(a)*
+            speed,
+
+            vy:
+            Math.sin(a)*
+            speed,
+
+            life:
+            15+
+            Math.random()*25,
+
+            color:color
+        });
+    }
+}
+
+
+function updateParticles(){
+
+    for(
+        let i=
+        particles.length-1;
+        i>=0;
+        i--
+    ){
+
+        let p=
+        particles[i];
+
+        p.x+=p.vx;
+        p.y+=p.vy;
+
+        p.vx*=.96;
+        p.vy*=.96;
+
+        p.life--;
+
+        if(p.life<=0)
+            particles.splice(i,1);
+    }
+}
+
+
+/* =========================
+   EFFECT UPDATE
+========================= */
+
+function updateEffects(){
+
+    for(
+        let i=
+        effects.length-1;
+        i>=0;
+        i--
+    ){
+
+        let e=
+        effects[i];
+
+        e.life--;
+
+        if(
+            e.max
+        ){
+
+            e.radius+=
+            (
+                e.max-
+                e.radius
+            )*.2;
+        }
+
+        if(e.life<=0)
+            effects.splice(i,1);
+    }
+}
+
+
+/* =========================
+   DRAW BACKGROUND
+========================= */
+
+function drawBackground(){
+
+    ctx.fillStyle=
+    "#23432c";
+
+    ctx.fillRect(
+        0,0,W,H
+    );
+
+    for(
+        let i=0;
+        i<100;
+        i++
+    ){
+
+        let x=
+        (i*91)%W;
+
+        let y=
+        110+
+        (i*47)%
+        Math.max(
+            100,
+            H-130
+        );
+
+        ctx.fillStyle=
+        i%2?
+        "#2b5133":
+        "#315b38";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,y,
+            15+(i%5)*3,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+    }
+
+    drawTree(
+        50,
+        150
+    );
+
+    drawTree(
+        W-50,
+        180
+    );
+
+    drawTree(
+        60,
+        H-100
+    );
+
+    drawTree(
+        W-60,
+        H-130
+    );
+}
+
+
+function drawTree(x,y){
+
+    ctx.fillStyle=
+    "#654321";
+
+    ctx.fillRect(
+        x-6,
+        y,
+        12,
+        35
+    );
+
+    ctx.fillStyle=
+    "#14532d";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        x,
+        y-10,
+        30,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.fillStyle=
+    "#166534";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        x-20,
+        y,
+        22,
+        0,
+        Math.PI*2
+    );
+
+    ctx.arc(
+        x+20,
+        y,
+        22,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+}
+
+
+/* =========================
+   DRAW PLAYER
+========================= */
+
+function drawPlayer(){
+
+    ctx.save();
+
+    ctx.translate(
+        player.x,
+        player.y
+    );
+
+    /*
+       Shadow
+    */
+
+    ctx.fillStyle=
+    "rgba(0,0,0,.35)";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        0,
+        27,
+        25,
+        8,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    /*
+       Cape
+    */
+
+    ctx.fillStyle=
+    "#312e81";
+
+    ctx.beginPath();
+
+    ctx.moveTo(-18,-3);
+    ctx.lineTo(-23,28);
+    ctx.lineTo(0,20);
+    ctx.lineTo(23,28);
+    ctx.lineTo(18,-3);
+
+    ctx.fill();
+
+    /*
+       Body
+    */
+
+    ctx.fillStyle=
+    "#2563eb";
+
+    ctx.fillRect(
+        -14,
+        -5,
+        28,
+        30
+    );
+
+    /*
+       Face
+    */
+
+    ctx.fillStyle=
+    "#f2c6a5";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        -20,
+        15,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    /*
+       Hair
+    */
+
+    ctx.fillStyle=
+    "#1f2937";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        -25,
+        15,
+        Math.PI,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    /*
+       Eyes
+    */
+
+    ctx.fillStyle=
+    "#111";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -5,
+        -20,
+        2,
+        0,
+        Math.PI*2
+    );
+
+    ctx.arc(
+        5,
+        -20,
+        2,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    /*
+       Weapon
+    */
+
+    ctx.strokeStyle=
+    "#e5e7eb";
+
+    ctx.lineWidth=5;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        player.facingX*10,
+        player.facingY*10
+    );
+
+    ctx.lineTo(
+        player.facingX*32,
+        player.facingY*32
+    );
+
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+
+/* =========================
+   DRAW MONSTER
+========================= */
+
+function drawMonster(m){
+
+    ctx.save();
+
+    ctx.translate(
+        m.x,
+        m.y
+    );
+
+    /*
+       Shadow
+    */
+
+    ctx.fillStyle=
+    "rgba(0,0,0,.35)";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        0,
+        m.radius+7,
+        m.radius,
+        7,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    /*
+       Body
+    */
+
+    ctx.fillStyle=
+    m.flash>0?
+    "#ffffff":
+    m.color;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        0,
+        m.radius,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    /*
+       Horns
+    */
+
+    ctx.fillStyle=
+    "#4c1d1d";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        -m.radius*.5,
+        -m.radius*.5
+    );
+
+    ctx.lineTo(
+        -m.radius,
+        -m.radius*1.3
+    );
+
+    ctx.lineTo(
+        -m.radius*.1,
+        -m.radius*.7
+    );
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        m.radius*.5,
+        -m.radius*.5
+    );
+
+    ctx.lineTo(
+        m.radius,
+        -m.radius*1.3
+    );
+
+    ctx.lineTo(
+        m.radius*.1,
+        -m.radius*.7
+    );
+
+    ctx.fill();
+
+    /*
+       Eyes
+    */
+
+    ctx.fillStyle=
+    "white";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -7,-4,
+        5,
+        0,
+        Math.PI*2
+    );
+
+    ctx.arc(
+        7,-4,
+        5,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.fillStyle=
+    "black";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -7,-4,
+        2,
+        0,
+        Math.PI*2
+    );
+
+    ctx.arc(
+        7,-4,
+        2,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    /*
+       HP
+    */
+
+    let bw=
+    m.radius*2.4;
+
+    ctx.fillStyle=
+    "#111";
+
+    ctx.fillRect(
+        -bw/2,
+        -m.radius-15,
+        bw,
+        6
+    );
+
+    ctx.fillStyle=
+    "#22c55e";
+
+    ctx.fillRect(
+        -bw/2,
+        -m.radius-15,
+        bw*
+        Math.max(
+            0,
+            m.hp/m.maxHp
+        ),
+        6
+    );
+
+    /*
+       Frozen
+    */
+
+    if(m.frozen>0){
+
+        ctx.strokeStyle=
+        "#bae6fd";
+
+        ctx.lineWidth=4;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            0,
+            m.radius+8,
+            0,
+            Math.PI*2
+        );
+
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+
+/* =========================
+   DRAW PROJECTILES
+========================= */
+
+function drawProjectiles(){
+
+    for(
+        const p of projectiles
+    ){
+
+        ctx.save();
+
+        ctx.shadowBlur=25;
+
+        ctx.shadowColor=
+        p.color;
+
+        if(
+            p.type===
+            "fireball"
+        ){
+
+            ctx.fillStyle=
+            "#ff3300";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x,
+                p.y,
+                12,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fill();
+
+            ctx.fillStyle=
+            "#ffd166";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x-3,
+                p.y-3,
+                6,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fill();
+        }
+
+        else if(
+            p.type===
+            "water"
+        ){
+
+            ctx.fillStyle=
+            "#38bdf8";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x,
+                p.y,
+                10,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fill();
+
+            ctx.strokeStyle=
+            "#bae6fd";
+
+            ctx.lineWidth=3;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x,
+                p.y,
+                15,
+                0,
+                Math.PI*2
+            );
+
+            ctx.stroke();
+        }
+
+        else{
+
+            /*
+               ICE
+            */
+
+            ctx.fillStyle=
+            "#bae6fd";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                p.x,
+                p.y-14
+            );
+
+            ctx.lineTo(
+                p.x+9,
+                p.y
+            );
+
+            ctx.lineTo(
+                p.x,
+                p.y+14
+            );
+
+            ctx.lineTo(
+                p.x-9,
+                p.y
+            );
+
+            ctx.closePath();
+
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+}
+
+
+/* =========================
+   DRAW EFFECTS
+========================= */
+
+function drawEffects(){
+
+    for(
+        const e of effects
+    ){
+
+        let alpha=
+        Math.max(
+            0,
+            e.life/45
+        );
+
+        ctx.save();
+
+        ctx.globalAlpha=
+        alpha;
+
+        /*
+           FIRE / WATER /
+           BLIZZARD AREA
+        */
+
+        if(
+            e.type===
+            "flame"||
+            e.type===
+            "tsunami"||
+            e.type===
+            "blizzard"
+        ){
+
+            ctx.strokeStyle=
+            e.color;
+
+            ctx.lineWidth=
+            e.type==="flame"?
+            18:
+            14;
+
+            ctx.shadowBlur=25;
+
+            ctx.shadowColor=
+            e.color;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                e.x,
+                e.y,
+                e.radius,
+                0,
+                Math.PI*2
+            );
+
+            ctx.stroke();
+
+            if(
+                e.type==="blizzard"
+            ){
+
+                for(
+                    let i=0;
+                    i<15;
+                    i++
+                ){
+
+                    let a=
+                    i*.45;
+
+                    let x=
+                    e.x+
+                    Math.cos(a)*
+                    e.radius*.7;
+
+                    let y=
+                    e.y+
+                    Math.sin(a)*
+                    e.radius*.7;
+
+                    ctx.fillStyle=
+                    "#ffffff";
+
+                    ctx.beginPath();
+
+                    ctx.arc(
+                        x,y,
+                        4,
+                        0,
+                        Math.PI*2
+                    );
+
+                    ctx.fill();
+                }
+            }
+        }
+
+        /*
+           THUNDER
+        */
+
+        if(
+            e.type===
+            "thunder"
+        ){
+
+            ctx.strokeStyle=
+            "#fde047";
+
+            ctx.lineWidth=7;
+
+            ctx.shadowBlur=30;
+
+            ctx.shadowColor=
+            "#fde047";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                e.x,
+                0
+            );
+
+            ctx.lineTo(
+                e.x-15,
+                e.y*.35
+            );
+
+            ctx.lineTo(
+                e.x+15,
+                e.y*.55
+            );
+
+            ctx.lineTo(
+                e.x-8,
+                e.y*.75
+            );
+
+            ctx.lineTo(
+                e.x,
+                e.y
+            );
+
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+}
+
+
+/* =========================
+   PARTICLES DRAW
+========================= */
+
+function drawParticles(){
+
+    for(
+        const p of particles
+    ){
+
+        ctx.globalAlpha=
+        Math.max(
+            0,
+            p.life/40
+        );
+
+        ctx.fillStyle=
+        p.color;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            p.x,
+            p.y,
+            3,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+    }
+
+    ctx.globalAlpha=1;
+}
+
+
+/* =========================
+   JOYSTICK DRAW
+========================= */
+
+function drawJoystick(){
+
+    if(!joy.active)
+        return;
+
+    ctx.globalAlpha=.8;
+
+    ctx.fillStyle=
+    "rgba(255,255,255,.15)";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        joy.startX,
+        joy.startY,
+        joy.radius,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.fillStyle=
+    "rgba(255,255,255,.4)";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        joy.startX+
+        joy.x*joy.radius,
+
+        joy.startY+
+        joy.y*joy.radius,
+
+        25,
+
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.globalAlpha=1;
+}
+
+
+/* =========================
+   DAMAGE TEXT
+========================= */
+
+function damageText(
+    x,y,text,color
+){
+
+    texts.push({
+
+        x:x,
+        y:y,
+
+        text:"-"+text,
+
+        color:color,
+
+        life:35
+    });
+}
+
+
+function updateTexts(){
+
+    for(
+        let i=texts.length-1;
+        i>=0;
+        i--
+    ){
+
+        let t=texts[i];
+
+        t.y-=.6;
+
+        t.life--;
+
+        if(t.life<=0)
+            texts.splice(i,1);
+    }
+}
+
+
+function drawTexts(){
+
+    for(
+        const t of texts
+    ){
+
+        ctx.globalAlpha=
+        t.life/35;
+
+        ctx.fillStyle=
+        t.color;
+
+        ctx.font=
+        "bold 17px Arial";
+
+        ctx.textAlign=
+        "center";
+
+        ctx.fillText(
+            t.text,
+            t.x,
+            t.y
+        );
+    }
+
+    ctx.globalAlpha=1;
+}
+
+
+/* =========================
+   HUD
+========================= */
+
+function updateHUD(){
+
+    document.getElementById(
+        "level"
+    ).textContent=
+    player.level;
+
+    document.getElementById(
+        "coins"
+    ).textContent=
+    player.coins;
+
+    document.getElementById(
+        "stage"
+    ).textContent=
+    stage;
+
+    document.getElementById(
+        "hpBar"
+    ).style.width=
+    (
+        player.hp/
+        player.maxHp*
+        100
+    )+"%";
+
+    document.getElementById(
+        "xpBar"
+    ).style.width=
+    (
+        player.xp/
+        (player.level*100)*
+        100
+    )+"%";
+}
+
+
+/* =========================
+   SKILL UI
+========================= */
+
+function updateSkillUI(){
+
+    document
+    .querySelectorAll(".skill")
+    .forEach(button=>{
+
+        let name=
+        button.dataset.skill;
+
+        let s=
+        skillData[name];
+
+        if(
+            player.level>=
+            s.level
+        ){
+
+            button.disabled=false;
+
+            button.classList.remove(
+                "locked"
+            );
+
+            button.querySelector(
+                "span"
+            ).textContent=
+            "Unlocked";
+
+        }else{
+
+            button.disabled=true;
+
+            button.classList.add(
+                "locked"
+            );
+
+            button.querySelector(
+                "span"
+            ).textContent=
+            "Lv "+s.level;
+        }
+    });
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+let messageTimer;
+
+function showMessage(text){
+
+    let box=
+    document.getElementById(
+        "message"
+    );
+
+    box.textContent=text;
+
+    box.style.opacity=1;
+
+    clearTimeout(
+        messageTimer
+    );
+
+    messageTimer=
+    setTimeout(
+        ()=>{
+            box.style.opacity=0;
+        },
+        1200
+    );
+}
+
+
+/* =========================
+   BUTTON EVENTS
+========================= */
+
+document.getElementById(
+    "skillButton"
+).onclick=()=>{
+
+    updateSkillUI();
+
+    document.getElementById(
+        "skillPanel"
+    ).style.display=
+    "block";
+};
+
+
+document.getElementById(
+    "closeSkill"
+).onclick=()=>{
+
+    document.getElementById(
+        "skillPanel"
+    ).style.display=
+    "none";
+};
+
+
+document
+.querySelectorAll(".skill")
+.forEach(button=>{
+
+    button.onclick=()=>{
+
+        let name=
+        button.dataset.skill;
+
+        if(
+            player.level<
+            skillData[name].level
+        ){
+
+            showMessage(
+                "🔒 Unlock at Level "+
+                skillData[name].level
+            );
+
+            return;
+        }
+
+        selectSkill(name);
+    };
+});
+
+
+document.getElementById(
+    "useSkill"
+).onclick=
+useSkill;
+
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function gameLoop(){
+
+    movePlayer();
+
+    moveMonsters();
+
+    autoAttack();
+
+    updateProjectiles();
+
+    updateParticles();
+
+    updateEffects();
+
+    updateTexts();
+
+    maintainMonsters();
+
+    drawBackground();
+
+    drawEffects();
+
+    drawProjectiles();
+
+    drawParticles();
+
+    for(
+        const m of monsters
+    ){
+
+        drawMonster(m);
+    }
+
+    drawPlayer();
+
+    drawTexts();
+
+    drawJoystick();
+
+    updateHUD();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+}
+
+
+/* =========================
+   START
+========================= */
+
+resize();
+
+for(
+    let i=0;
+    i<5;
+    i++
+){
+
+    createMonster();
+}
+
+updateSkillUI();
+
+updateHUD();
+
+gameLoop();
+
+</script>
+
+</body>
+</html>
