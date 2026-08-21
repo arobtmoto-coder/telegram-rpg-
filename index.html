@@ -409,9 +409,19 @@ regen:{level:4,type:"passive",icon:"💚",name:"Recovery",desc:"Regenerate 1 HP 
 };
 
 /* =========================
-   JOYSTICK
+   CONTROLS (JOYSTICK + KEYBOARD)
 ========================= */
 let joy = { active: false, startX: 0, startY: 0, x: 0, y: 0, radius: 60 };
+const keys = { KeyW: false, KeyS: false, KeyA: false, KeyD: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+window.addEventListener("keydown", e => {
+    if(keys.hasOwnProperty(e.code)) keys[e.code] = true;
+    if(e.code === "Space") useSkill();
+});
+
+window.addEventListener("keyup", e => {
+    if(keys.hasOwnProperty(e.code)) keys[e.code] = false;
+});
 
 canvas.addEventListener("pointerdown", e => {
     joy.active = true;
@@ -442,7 +452,16 @@ canvas.addEventListener("pointercancel", stopJoy);
 ========================= */
 function movePlayer(){
     if(player.dead || choiceOpen) return;
-    let dx = joy.x, dy = joy.y;
+    
+    let dx = joy.x;
+    let dy = joy.y;
+
+    // Keyboard support (WASD + Arrow Keys)
+    if (keys.KeyW || keys.ArrowUp) dy -= 1;
+    if (keys.KeyS || keys.ArrowDown) dy += 1;
+    if (keys.KeyA || keys.ArrowLeft) dx -= 1;
+    if (keys.KeyD || keys.ArrowRight) dx += 1;
+
     let len = Math.hypot(dx, dy);
 
     if(len > 0){
