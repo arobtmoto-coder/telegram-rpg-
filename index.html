@@ -38,6 +38,7 @@ html,body{
     width:100%;
     height:100%;
     touch-action:none;
+    outline:none; /* Highlight boundary disable karne ke liye */
 }
 
 #hud{
@@ -260,7 +261,7 @@ html,body{
 
 <body>
 
-<canvas id="game"></canvas>
+<canvas id="game" tabindex="0"></canvas>
 
 <div id="hud">
   <div class="gameTop">
@@ -321,6 +322,14 @@ if(tg){
 ========================= */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+
+// Keyboard focus automatically grab karne ke liye
+window.addEventListener("load", () => {
+    canvas.focus();
+});
+canvas.addEventListener("click", () => {
+    canvas.focus();
+});
 
 let W = 0, H = 0;
 const WORLD_W = 2600;
@@ -409,18 +418,34 @@ regen:{level:4,type:"passive",icon:"💚",name:"Recovery",desc:"Regenerate 1 HP 
 };
 
 /* =========================
-   CONTROLS (JOYSTICK + KEYBOARD)
+   CONTROLS (JOYSTICK + KEYBOARD FIX)
 ========================= */
 let joy = { active: false, startX: 0, startY: 0, x: 0, y: 0, radius: 60 };
-const keys = { KeyW: false, KeyS: false, KeyA: false, KeyD: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+const keys = { 
+    KeyW: false, KeyS: false, KeyA: false, KeyD: false, 
+    ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
+    w: false, s: false, a: false, d: false
+};
 
 window.addEventListener("keydown", e => {
-    if(keys.hasOwnProperty(e.code)) keys[e.code] = true;
-    if(e.code === "Space") useSkill();
+    let k = e.key.toLowerCase();
+    if (k === 'w' || k === 'a' || k === 's' || k === 'd' || e.code.startsWith('Arrow')) {
+        keys[e.code] = true;
+        keys[k] = true;
+        e.preventDefault(); // Browser scroll rokne ke liye
+    }
+    if (e.code === "Space" || e.key === " ") {
+        useSkill();
+        e.preventDefault();
+    }
 });
 
 window.addEventListener("keyup", e => {
-    if(keys.hasOwnProperty(e.code)) keys[e.code] = false;
+    let k = e.key.toLowerCase();
+    if (k === 'w' || k === 'a' || k === 's' || k === 'd' || e.code.startsWith('Arrow')) {
+        keys[e.code] = false;
+        keys[k] = false;
+    }
 });
 
 canvas.addEventListener("pointerdown", e => {
@@ -428,6 +453,7 @@ canvas.addEventListener("pointerdown", e => {
     joy.startX = e.clientX;
     joy.startY = e.clientY;
     joy.x = 0; joy.y = 0;
+    canvas.focus();
 });
 
 canvas.addEventListener("pointermove", e => {
@@ -456,11 +482,11 @@ function movePlayer(){
     let dx = joy.x;
     let dy = joy.y;
 
-    // Keyboard support (WASD + Arrow Keys)
-    if (keys.KeyW || keys.ArrowUp) dy -= 1;
-    if (keys.KeyS || keys.ArrowDown) dy += 1;
-    if (keys.KeyA || keys.ArrowLeft) dx -= 1;
-    if (keys.KeyD || keys.ArrowRight) dx += 1;
+    // Direct Keys Inspection
+    if (keys.KeyW || keys.ArrowUp || keys.w) dy -= 1;
+    if (keys.KeyS || keys.ArrowDown || keys.s) dy += 1;
+    if (keys.KeyA || keys.ArrowLeft || keys.a) dx -= 1;
+    if (keys.KeyD || keys.ArrowRight || keys.d) dx += 1;
 
     let len = Math.hypot(dx, dy);
 
@@ -559,7 +585,6 @@ function damagePlayer(damage, monster){
 }
 
 function showGameOver(){
-    // Telegram Send Data Integration
     if(tg && tg.sendData){
         tg.sendData(JSON.stringify({
             score: player.coins,
@@ -596,6 +621,7 @@ function restartGame(){
 
     for(let i=0; i<5; i++) createMonster();
     updateSkillUI(); updateHUD();
+    canvas.focus();
     requestAnimationFrame(gameLoop);
 }
 
@@ -692,6 +718,7 @@ function chooseSkill(name){
     document.getElementById("activeSkillBadge").textContent = s.type === "passive" ? "💠 PASSIVE: " + s.name + " Lv." + ownedSkills[name] : "⚡ ACTIVE: " + s.name + " Lv." + ownedSkills[name];
     showMessage((old ? "⬆️ Evolved " : "✨ Equipped ") + s.name + " Lv." + ownedSkills[name]);
     updateSkillUI(); updateHUD();
+    canvas.focus();
 }
 
 function randomChoicePool(){
@@ -912,12 +939,11 @@ function updateEffects(){
 }
 
 /* =========================
-   RENDERING & BACKGROUND FIX
+   RENDERING
 ========================= */
 function drawBackground(){
     ctx.save();
     
-    // Smooth Vertical Background Fill linked with Camera
     const g = ctx.createLinearGradient(0, -camera.y, 0, WORLD_H - camera.y);
     g.addColorStop(0, "#6f727b"); 
     g.addColorStop(.45, "#555862"); 
@@ -926,7 +952,6 @@ function drawBackground(){
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
-    // Dynamic Grid tiles moving in sync with camera
     const tileW = 70;
     const tileH = 55;
     const startX = - (camera.x % tileW) - tileW;
@@ -946,10 +971,8 @@ function drawBackground(){
         }
     }
 
-    // Translate world-relative objects
     ctx.translate(-camera.x, -camera.y);
 
-    // Grass path decor
     ctx.fillStyle = "#75a816";
     ctx.beginPath(); 
     ctx.moveTo(0, 130); 
@@ -1199,8 +1222,8 @@ function showMessage(text){
    UI EVENTS
 ========================= */
 document.getElementById("skillButton").onclick = () => { renderBook(); document.getElementById("bookOverlay").style.display = "block"; };
-document.getElementById("closeSkill").onclick = () => document.getElementById("skillPanel").style.display = "none";
-document.getElementById("closeBook").onclick = () => document.getElementById("bookOverlay").style.display = "none";
+document.getElementById("closeSkill").onclick = () => { document.getElementById("skillPanel").style.display = "none"; canvas.focus(); };
+document.getElementById("closeBook").onclick = () => { document.getElementById("bookOverlay").style.display = "none"; canvas.focus(); };
 
 function refreshChoices(){
     if(!choiceOpen || freeUses <= 0) return;
@@ -1254,6 +1277,7 @@ gameStartTime = performance.now();
 pickupCard = {active: true, x: WORLD_W/2, y: WORLD_H/2 - 115, pulse: 0};
 for(let i=0; i<5; i++) createMonster();
 updateSkillUI(); updateHUD();
+canvas.focus();
 gameLoop();
 
 </script>
