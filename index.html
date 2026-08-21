@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <title>Mini RPG</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Telegram Mini App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Phaser -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+</head>
+
+<body>
+
+<div id="game-container"></div>
+
+<!-- Top HUD -->
+<div id="hud">
+
+    <div class="player-info">
+        <div id="player-name">Player</div>
+        <div>Level <span id="level">1</span></div>
+    </div>
+
+    <div class="bars">
+
+        <div class="bar hp">
+            <div id="hp-bar"></div>
+        </div>
+
+        <div class="bar xp">
+            <div id="xp-bar"></div>
+        </div>
+
+    </div>
+
+    <div class="currency">
+        🪙 <span id="coins">0</span>
+    </div>
+
+</div>
+
+<!-- Stage -->
+<div id="stage-ui">
+    Stage <span id="stage">1</span>
+</div>
+
+<!-- Skill button -->
+<button id="skill-button">⚡ Skills</button>
+
+<!-- Skill panel -->
+<div id="skill-panel">
+
+    <div class="skill-header">
+        <span>Skills</span>
+        <button id="close-skills">✕</button>
+    </div>
+
+    <div class="skill-points">
+        Skill Points:
+        <span id="skill-points">0</span>
+    </div>
+
+    <div class="skill" id="attack-skill">
+        <div>
+            <b>⚔ Power</b>
+            <small>Increase attack damage</small>
+        </div>
+
+        <button onclick="upgradeSkill('attack')">
+            Upgrade
+        </button>
+    </div>
+
+    <div class="skill" id="speed-skill">
+        <div>
+            <b>👟 Speed</b>
+            <small>Increase movement speed</small>
+        </div>
+
+        <button onclick="upgradeSkill('speed')">
+            Upgrade
+        </button>
+    </div>
+
+    <div class="skill" id="critical-skill">
+        <div>
+            <b>💥 Critical</b>
+            <small>Increase critical chance</small>
+        </div>
+
+        <button onclick="upgradeSkill('critical')">
+            Upgrade
+        </button>
+    </div>
+
+</div>
+
+<!-- Message -->
+<div id="message"></div>
+
+<script src="game.js"></script>
+
+</body>
+</html>
