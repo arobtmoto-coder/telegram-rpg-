@@ -1,0 +1,378 @@
+* {
+    box-sizing: border-box;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+
+    margin: 0;
+
+    padding: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #111827;
+
+    touch-action: none;
+
+    font-family: Arial, sans-serif;
+}
+
+
+#game {
+
+    position: fixed;
+
+    left: 0;
+    top: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    background: #18252d;
+}
+
+
+/* =========================
+   HUD
+========================= */
+
+#hud {
+
+    position: fixed;
+
+    top: 10px;
+
+    left: 10px;
+    right: 10px;
+
+    padding: 10px;
+
+    border-radius: 12px;
+
+    background:
+    rgba(0,0,0,0.55);
+
+    color: white;
+
+    z-index: 10;
+
+    pointer-events: none;
+}
+
+
+.top-row {
+
+    display: flex;
+
+    justify-content:
+    space-between;
+
+    font-weight: bold;
+
+    font-size: 14px;
+
+    margin-bottom: 7px;
+}
+
+
+.label {
+
+    font-size: 10px;
+
+    margin-top: 3px;
+}
+
+
+.bar {
+
+    width: 100%;
+
+    height: 8px;
+
+    background: #333;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+    margin-bottom: 4px;
+}
+
+
+#hpBar {
+
+    height: 100%;
+
+    width: 100%;
+
+    background: #ef4444;
+}
+
+
+#xpBar {
+
+    height: 100%;
+
+    width: 0%;
+
+    background: #facc15;
+}
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+#skillsButton {
+
+    position: fixed;
+
+    right: 15px;
+    bottom: 18px;
+
+    z-index: 20;
+
+    border: none;
+
+    padding: 13px 17px;
+
+    border-radius: 14px;
+
+    background: #7c3aed;
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: bold;
+}
+
+
+#useSkillButton {
+
+    position: fixed;
+
+    left: 15px;
+    bottom: 18px;
+
+    z-index: 20;
+
+    border: none;
+
+    padding: 13px 17px;
+
+    border-radius: 14px;
+
+    background: #374151;
+
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    max-width: 160px;
+}
+
+
+/* =========================
+   SKILL PANEL
+========================= */
+
+#skillPanel {
+
+    position: fixed;
+
+    left: 50%;
+    top: 50%;
+
+    transform:
+    translate(-50%, -50%);
+
+    width: min(92vw, 380px);
+
+    max-height: 85vh;
+
+    overflow-y: auto;
+
+    padding: 15px;
+
+    background:
+    rgba(18,18,25,0.98);
+
+    border-radius: 18px;
+
+    z-index: 30;
+
+    display: none;
+
+    box-shadow:
+    0 15px 50px
+    rgba(0,0,0,0.7);
+}
+
+
+.skillHeader {
+
+    display: flex;
+
+    justify-content:
+    space-between;
+
+    align-items: center;
+
+    color: white;
+
+    margin-bottom: 10px;
+}
+
+
+#closeSkills {
+
+    width: 32px;
+    height: 32px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #333;
+
+    color: white;
+
+    font-size: 17px;
+}
+
+
+/* =========================
+   ELEMENTS
+========================= */
+
+.element {
+
+    margin-top: 10px;
+
+    padding: 7px;
+
+    border-radius: 8px;
+
+    color: white;
+
+    font-weight: bold;
+}
+
+
+.fire {
+    background:
+    rgba(239,68,68,0.3);
+}
+
+
+.water {
+    background:
+    rgba(59,130,246,0.3);
+}
+
+
+.ice {
+    background:
+    rgba(125,211,252,0.3);
+}
+
+
+.lightning {
+    background:
+    rgba(250,204,21,0.3);
+}
+
+
+/* =========================
+   SKILLS
+========================= */
+
+.skill {
+
+    width: 100%;
+
+    display: flex;
+
+    justify-content:
+    space-between;
+
+    align-items: center;
+
+    margin-top: 5px;
+
+    padding: 11px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #27272a;
+
+    color: white;
+
+    text-align: left;
+
+    font-size: 14px;
+}
+
+
+.skill span {
+
+    color: #aaa;
+
+    font-size: 11px;
+}
+
+
+.skill:active {
+
+    transform: scale(0.97);
+}
+
+
+.locked {
+
+    opacity: 0.45;
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+#message {
+
+    position: fixed;
+
+    left: 50%;
+    top: 38%;
+
+    transform:
+    translate(-50%, -50%);
+
+    z-index: 50;
+
+    color: white;
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+    text-shadow:
+    0 2px 5px black;
+
+    pointer-events: none;
+
+    opacity: 0;
+}
