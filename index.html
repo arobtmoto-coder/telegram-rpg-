@@ -256,6 +256,14 @@ html,body{
 
 #game { touch-action:none; }
 
+
+/* ===== LOBBY + STAGE SYSTEM ===== */
+#lobbyOverlay{position:fixed;inset:0;z-index:200;overflow:hidden;color:#fff;background:radial-gradient(circle at 50% 42%,rgba(151,205,235,.42),transparent 25%),linear-gradient(180deg,#101b35 0%,#456276 48%,#111b28 100%)}
+#lobbyOverlay:before{content:"";position:absolute;inset:28% 0 0;background:radial-gradient(circle at 50% 50%,rgba(125,205,220,.3),transparent 38%),linear-gradient(165deg,transparent 0 45%,rgba(5,12,20,.7) 45.2% 46%,transparent 46.2%),linear-gradient(195deg,transparent 0 50%,rgba(5,12,20,.72) 50.2% 51%,transparent 51.2%);pointer-events:none}
+#lobbyOverlay:after{content:"☾   ✦   ✦   🦇     ✦   🦇   ✦";position:absolute;top:42%;left:0;right:0;text-align:center;font-size:24px;letter-spacing:13px;opacity:.6;pointer-events:none}
+.lobbyTop{position:absolute;top:18px;left:16px;right:16px;display:flex;align-items:center;justify-content:space-between;z-index:5}.lobbyPill{background:rgba(6,11,21,.8);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:10px 15px;font-weight:1000;box-shadow:0 7px 20px rgba(0,0,0,.35)}.lobbyResources{display:flex;gap:5px;align-items:center;font-size:11px}.lobbyResources span{background:rgba(5,12,22,.78);border-radius:16px;padding:6px 8px}.lobbyProfile{position:absolute;left:16px;top:78px;z-index:5;display:flex;gap:8px;align-items:center;background:rgba(12,13,24,.78);border:2px solid #303248;border-radius:12px;padding:6px 10px;font-size:10px}.profileAvatar{font-size:30px}.lobbyProfile strong{color:#f6df32;font-size:17px}.lobbyCore{position:absolute;top:80px;left:50%;transform:translateX(-50%);z-index:5;width:min(300px,54vw);padding:8px 12px 7px;text-align:center;border-radius:15px;background:linear-gradient(#ffd95b,#f3ad19);border:3px solid #3a2940;color:#fff;text-shadow:0 2px #6b4310;box-shadow:0 7px 0 #21182a}.lobbyCore>b{display:block;font-size:9px}.lobbyCore>span{position:absolute;left:-12px;top:-13px;background:#8e45db;border:3px solid #251c37;border-radius:12px;padding:6px 9px;font-size:18px}.lobbyCore>strong{display:block;font-size:18px}.lobbyCore div{height:9px;margin:3px 25px;background:#4d431c;border:2px solid #2c2714;border-radius:8px;overflow:hidden}.lobbyCore i{display:block;width:51%;height:100%;background:#35bff0}.lobbyCore small{font-size:8px}.lobbyTitle{display:none}.lobbyHero{position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);z-index:3;width:160px;height:220px;display:flex;align-items:center;justify-content:center;font-size:116px;filter:drop-shadow(0 23px 14px rgba(0,0,0,.65))}.lobbyHero:after{content:"";position:absolute;bottom:0;width:185px;height:34px;border-radius:50%;background:rgba(5,10,18,.5);z-index:-1}.lobbySide{position:absolute;top:22%;bottom:31%;z-index:6;display:flex;flex-direction:column;justify-content:space-around}.lobbySide.left{left:14px}.lobbySide.right{right:14px}.lobbyBtn{width:72px;min-height:54px;border:2px solid rgba(255,255,255,.14);border-radius:12px;background:linear-gradient(#52647a,#171e2e);color:#fff;font-weight:1000;font-size:10px;box-shadow:0 5px 0 #0a0d16,0 8px 15px rgba(0,0,0,.35);padding:5px 2px}.lobbyBtn .ico{display:block;font-size:25px;line-height:27px}.lobbyBtn:active,.lobbyCenterActions button:active,.lobbyBottom button:active,.stageLaunch:active{transform:translateY(2px)}.lobbyCenterActions{position:absolute;z-index:7;left:50%;bottom:25%;transform:translateX(-50%);display:flex;gap:3px;background:rgba(12,15,27,.88);padding:5px 7px;border-radius:11px;border:1px solid #272943}.lobbyCenterActions button{width:82px;border:0;background:transparent;color:#fff;font-size:27px;font-weight:1000}.lobbyCenterActions small{display:block;font-size:10px}.stageLaunch{position:absolute;left:50%;bottom:17%;transform:translateX(-50%);z-index:30;pointer-events:auto;touch-action:manipulation;width:min(285px,66vw);border:3px solid #342817;border-radius:20px;padding:8px 14px 12px;background:linear-gradient(#ffe15a,#ffb91d 60%,#e49a12);color:#171522;box-shadow:0 7px 0 #211a15,0 14px 25px rgba(0,0,0,.5);text-align:center;cursor:pointer}.stageLaunch .small{font-size:9px;letter-spacing:7px;font-weight:1000}.stageLaunch .num{font-size:46px;line-height:44px;font-weight:1000;text-shadow:0 3px #fff}.stageLaunch .tap{font-size:10px;font-weight:1000;margin-top:3px}.lobbyBottom{position:absolute;left:0;right:0;bottom:0;height:74px;z-index:9;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(14,17,31,.96);border-top:2px solid #33364b}.lobbyBottom button{border:0;border-right:1px solid #32354a;background:transparent;color:#fff;font-size:28px}.lobbyBottom button.active{background:linear-gradient(#ffd44b,#f5ad20);color:#fff;text-shadow:0 3px #222}.lobbyBottom b{display:block;font-size:11px}.lobbyBottom button:last-child{border-right:0}
+#warningOverlay{position:fixed;inset:0;z-index:180;display:none;align-items:center;justify-content:center;background:rgba(150,0,0,.24);pointer-events:none}.warningBox{padding:17px 24px;border:4px solid #ff2525;border-radius:18px;background:rgba(42,0,0,.92);color:#fff;font-size:clamp(20px,5vw,32px);font-weight:1000;text-align:center;box-shadow:0 0 45px rgba(255,0,0,.9);animation:warningPulse .42s infinite alternate}@keyframes warningPulse{from{transform:scale(1);filter:brightness(1)}to{transform:scale(1.08);filter:brightness(1.45)}}#stageNotice{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%);z-index:170;display:none;text-align:center;color:#fff;font-weight:1000;text-shadow:0 4px 0 #111;pointer-events:none}#stageNotice .big{font-size:clamp(32px,9vw,58px)}#stageNotice .sub{font-size:14px;margin-top:6px}
+@media(max-width:430px){.stageLaunch{bottom:17%;width:70vw}.stageLaunch .num{font-size:40px}}
 </style>
 </head>
 
@@ -277,6 +285,25 @@ html,body{
     </div>
   </div>
 </div>
+
+
+<!-- ===== LOBBY ===== -->
+<div id="lobbyOverlay">
+  <!-- Clean lobby: only Stage + the five bottom options -->
+  <button id="stageLaunch" class="stageLaunch" type="button">
+    <div class="small">S T A G E</div>
+    <div class="num">001</div>
+    <div class="tap">TAP TO START</div>
+  </button>
+  <div class="lobbyBottom">
+    <button type="button">⭐</button><button type="button">🤖</button><button type="button" class="active">⚔️<b>Lobby</b></button><button type="button">🎒</button><button type="button">☠️</button>
+  </div>
+</div>
+
+<div id="warningOverlay">
+  <div class="warningBox">⚠ RED WARNING ⚠<br><span style="font-size:.58em">MASS MONSTERS INCOMING!</span></div>
+</div>
+<div id="stageNotice"><div class="big"></div><div class="sub"></div></div>
 
 <div id="activeSkillBadge">⚡ AUTO</div>
 <button id="skillButton">📖 Book</button>
@@ -395,6 +422,154 @@ let choiceReason = "card";
 let choiceOptions = [];
 
 /* =========================
+   STAGE / BOSS SYSTEM
+========================= */
+const STAGE_PREP_TIME = 90 * 1000;   // 1.5 minutes of lighter monster waves
+const WARNING_TIME = 3 * 1000;
+const SWARM_TIME = 40 * 1000;
+const BOSS_BARRIER_RADIUS = 330;
+
+let gameStarted = false;
+let stagePhase = "lobby"; // lobby, prep, warning, swarm, boss, complete
+let stagePhaseStart = 0;
+let swarmSpawnTimer = 0;
+let boss = null;
+let barrier = null;
+let stageEnding = false;
+
+function stageElapsed(){
+    return Math.max(0, performance.now() - stagePhaseStart);
+}
+
+function showStageNotice(title, sub, ms=1800){
+    const n = document.getElementById("stageNotice");
+    n.querySelector(".big").textContent = title;
+    n.querySelector(".sub").textContent = sub || "";
+    n.style.display = "block";
+    clearTimeout(n._timer);
+    n._timer = setTimeout(() => n.style.display = "none", ms);
+}
+
+function startStage(num){
+    gameStarted = true;
+    stage = num;
+    stagePhase = "prep";
+    stagePhaseStart = performance.now();
+    swarmSpawnTimer = 0;
+    stageEnding = false;
+    boss = null;
+    barrier = null;
+    monsters = [];
+    projectiles = [];
+    effects = [];
+    particles = [];
+    texts = [];
+    player.dead = false;
+    player.hp = player.maxHp;
+    player.x = WORLD_W/2;
+    player.y = WORLD_H/2;
+    player.facingX = 1; player.facingY = 0;
+    pickupCard = {active:false, x:player.x, y:player.y - 115, pulse:0};
+    document.getElementById("lobbyOverlay").style.display = "none";
+    document.getElementById("warningOverlay").style.display = "none";
+    showStageNotice("STAGE " + String(stage).padStart(3,"0"), "PREPARE FOR BATTLE", 1600);
+    canvas.focus();
+    updateCamera();
+}
+
+function spawnStageMonster(){
+    createMonster();
+}
+
+function startWarning(){
+    stagePhase = "warning";
+    stagePhaseStart = performance.now();
+    document.getElementById("warningOverlay").style.display = "flex";
+    showStageNotice("⚠ WARNING", "A MONSTER WAVE IS COMING!", 2800);
+}
+
+function startSwarm(){
+    stagePhase = "swarm";
+    stagePhaseStart = performance.now();
+    swarmSpawnTimer = 0;
+    document.getElementById("warningOverlay").style.display = "none";
+    showStageNotice("MASS ATTACK", "SURVIVE FOR 40 SECONDS", 1600);
+}
+
+function spawnBoss(){
+    stagePhase = "boss";
+    stagePhaseStart = performance.now();
+    document.getElementById("warningOverlay").style.display = "none";
+
+    const cx = player.x, cy = player.y;
+    barrier = {active:true, x:cx, y:cy, radius:BOSS_BARRIER_RADIUS};
+
+    const hp = 700 + stage * 300;
+    boss = {
+        x:cx, y:Math.max(150, cy - BOSS_BARRIER_RADIUS + 55),
+        radius:50, color:"#b91c1c", type:"boss",
+        hp:hp, maxHp:hp, speed:1.0 + stage*.04,
+        frozen:0, flash:0, lastAttack:0, isBoss:true
+    };
+    monsters.push(boss);
+    showStageNotice("👑 BOSS INCOMING", "THE RED BARRIER IS SEALED!", 2200);
+}
+
+function finishStage(){
+    if(stageEnding) return;
+    stageEnding = true;
+    stagePhase = "complete";
+    barrier = null;
+    boss = null;
+    showStageNotice("🏆 STAGE " + String(stage).padStart(3,"0") + " CLEAR!", "NEXT STAGE STARTING...", 2600);
+    setTimeout(() => {
+        if(player.dead) return;
+        stageEnding = false;
+        startStage(stage + 1);
+    }, 2800);
+}
+
+function clampToBarrier(obj, radius=0){
+    if(!barrier || !barrier.active) return;
+    const dx = obj.x - barrier.x, dy = obj.y - barrier.y;
+    const d = Math.hypot(dx,dy);
+    const limit = Math.max(20, barrier.radius - radius);
+    if(d > limit){
+        const a = Math.atan2(dy,dx);
+        obj.x = barrier.x + Math.cos(a)*limit;
+        obj.y = barrier.y + Math.sin(a)*limit;
+    }
+}
+
+function updateStageFlow(){
+    if(!gameStarted || player.dead || choiceOpen || stagePhase === "complete") return;
+
+    const now = performance.now(), elapsed = now - stagePhaseStart;
+
+    if(stagePhase === "prep"){
+        const spawnEvery = Math.max(2200, 4200 - stage*120);
+        if(now - swarmSpawnTimer > spawnEvery){
+            swarmSpawnTimer = now;
+            const maxFew = Math.min(4 + Math.floor(stage/2), 6);
+            if(monsters.filter(m => !m.isBoss).length < maxFew) spawnStageMonster();
+        }
+        if(elapsed >= STAGE_PREP_TIME) startWarning();
+    } else if(stagePhase === "warning"){
+        if(elapsed >= WARNING_TIME) startSwarm();
+    } else if(stagePhase === "swarm"){
+        const total = 10 + stage * 3;
+        const spawnEvery = Math.max(450, SWARM_TIME / total);
+        if(now - swarmSpawnTimer > spawnEvery){
+            swarmSpawnTimer = now;
+            if(monsters.filter(m => !m.isBoss).length < 12 + stage*2) spawnStageMonster();
+        }
+        if(elapsed >= SWARM_TIME) spawnBoss();
+    } else if(stagePhase === "boss"){
+        if(boss && !monsters.includes(boss)) finishStage();
+    }
+}
+
+/* =========================
    SKILLS DATA
 ========================= */
 const skillData = {
@@ -477,12 +652,11 @@ canvas.addEventListener("pointercancel", stopJoy);
    MOVEMENT & CAMERA
 ========================= */
 function movePlayer(){
-    if(player.dead || choiceOpen) return;
-    
+    if(player.dead || choiceOpen || !gameStarted || stagePhase === "complete") return;
+
     let dx = joy.x;
     let dy = joy.y;
 
-    // Direct Keys Inspection
     if (keys.KeyW || keys.ArrowUp || keys.w) dy -= 1;
     if (keys.KeyS || keys.ArrowDown || keys.s) dy += 1;
     if (keys.KeyA || keys.ArrowLeft || keys.a) dx -= 1;
@@ -500,6 +674,7 @@ function movePlayer(){
 
     player.x = Math.max(30, Math.min(WORLD_W - 30, player.x));
     player.y = Math.max(120, Math.min(WORLD_H - 40, player.y));
+    clampToBarrier(player, 28);
     updateCamera();
 }
 
@@ -515,10 +690,17 @@ function createMonster(){
     let t = types[Math.floor(Math.random()*types.length)];
     let x, y;
 
-    do {
-        x = 40 + Math.random() * (WORLD_W - 80);
-        y = 130 + Math.random() * (WORLD_H - 170);
-    } while(Math.hypot(x - player.x, y - player.y) < 200);
+    if(barrier && barrier.active){
+        const a = Math.random() * Math.PI * 2;
+        const r = 90 + Math.random() * Math.max(30, barrier.radius - 130);
+        x = barrier.x + Math.cos(a) * r;
+        y = barrier.y + Math.sin(a) * r;
+    } else {
+        do {
+            x = 40 + Math.random() * (WORLD_W - 80);
+            y = 130 + Math.random() * (WORLD_H - 170);
+        } while(Math.hypot(x - player.x, y - player.y) < 200);
+    }
 
     let hp = t.hp + (stage - 1) * 15;
     monsters.push({
@@ -554,9 +736,10 @@ function moveMonsters(){
             let now = performance.now();
             if(now - m.lastAttack >= 900){
                 m.lastAttack = now;
-                damagePlayer(8, m);
+                damagePlayer(m.isBoss ? 15 : 8, m);
             }
         }
+        if(barrier && barrier.active) clampToBarrier(m, m.radius);
     }
 }
 
@@ -576,6 +759,7 @@ function damagePlayer(damage, monster){
         let dy = player.y - monster.y;
         let d = Math.hypot(dx, dy);
         if(d > 0){ player.x += dx/d * 5; player.y += dy/d * 5; }
+        clampToBarrier(player, 28);
     }
 
     if(player.hp <= 0){
@@ -609,20 +793,23 @@ function restartGame(){
     selectedSkill = null; skillCooldowns = {}; ownedSkills = {};
     passiveStats = {crit:0, attack:0, maxHp:0, regen:0, haste:0};
     xpGems = []; choiceOpen = false;
-    pickupCard = {active:true, x: WORLD_W/2, y: WORLD_H/2 - 115, pulse:0};
-    
+    pickupCard = {active:true, x:WORLD_W/2, y:WORLD_H/2 - 115, pulse:0};
     monsters = []; projectiles = []; effects = []; particles = []; texts = [];
+    boss = null; barrier = null; stagePhase = "lobby"; gameStarted = false; stageEnding = false;
+
     document.getElementById("skillPanel").style.display = "none";
     document.getElementById("choiceOverlay").style.display = "none";
     document.getElementById("bookOverlay").style.display = "none";
+    document.getElementById("warningOverlay").style.display = "none";
+    document.getElementById("stageNotice").style.display = "none";
 
     const box = document.getElementById("message");
     box.innerHTML = ""; box.style.opacity = 0; box.style.pointerEvents = "none";
 
-    for(let i=0; i<5; i++) createMonster();
+    document.getElementById("lobbyOverlay").style.display = "flex";
+    document.getElementById("stageLaunch").querySelector(".num").textContent = "001";
     updateSkillUI(); updateHUD();
     canvas.focus();
-    requestAnimationFrame(gameLoop);
 }
 
 /* =========================
@@ -655,18 +842,26 @@ function hitMonster(monster, damage, color){
     damageText(monster.x, monster.y - 30, finalDamage, color);
 
     if(monster.hp <= 0){
+        const wasBoss = !!monster.isBoss;
         let index = monsters.indexOf(monster);
         if(index !== -1) monsters.splice(index, 1);
-        player.coins += 5; kills++;
-        for(let i=0; i < 2 + Math.floor(Math.random()*3); i++){
+
+        player.coins += wasBoss ? 100 * stage : 5;
+        kills++;
+
+        for(let i=0; i < (wasBoss ? 8 : 2 + Math.floor(Math.random()*3)); i++){
             xpGems.push({
-                x: monster.x + (Math.random() - .5)*55,
-                y: monster.y + (Math.random() - .5)*55,
-                value: 10, life: 900, spin: Math.random()*6.28
+                x: monster.x + (Math.random() - .5)*75,
+                y: monster.y + (Math.random() - .5)*75,
+                value: wasBoss ? 25 : 10, life: 1400, spin: Math.random()*6.28
             });
         }
-        createParticles(monster.x, monster.y, "#84cc16", 12);
-        if(kills >= 5 + stage*2){ kills = 0; stage++; showMessage("🏆 STAGE " + stage); }
+
+        createParticles(monster.x, monster.y, wasBoss ? "#ff3333" : "#84cc16", wasBoss ? 35 : 12);
+
+        if(wasBoss){
+            finishStage();
+        }
         levelCheck();
     }
 }
@@ -1010,6 +1205,34 @@ function drawSlab(x, y, w, h){
     ctx.restore();
 }
 
+
+function drawHealthBar(x, y, width, hp, maxHp, bossBar=false){
+    const ratio = Math.max(0, Math.min(1, hp / Math.max(1,maxHp)));
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = "rgba(0,0,0,.82)";
+    ctx.fillRect(-width/2, 0, width, bossBar ? 9 : 7);
+    ctx.fillStyle = bossBar ? "#ef4444" : "#22c55e";
+    ctx.fillRect(-width/2, 0, width*ratio, bossBar ? 9 : 7);
+    ctx.strokeStyle = bossBar ? "#ff8b8b" : "#b8ffbd";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-width/2, 0, width, bossBar ? 9 : 7);
+    ctx.restore();
+}
+
+function drawBarrier(){
+    if(!barrier || !barrier.active) return;
+    const rx = barrier.x - camera.x, ry = barrier.y - camera.y;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(rx, ry, barrier.radius, 0, Math.PI*2);
+    ctx.strokeStyle = "rgba(255,40,40,.95)"; ctx.lineWidth = 7;
+    ctx.shadowColor = "#ff1e1e"; ctx.shadowBlur = 24; ctx.stroke();
+    ctx.beginPath(); ctx.arc(rx, ry, barrier.radius-10, 0, Math.PI*2);
+    ctx.strokeStyle = "rgba(255,120,120,.35)"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "rgba(255,0,0,.045)"; ctx.fill();
+    ctx.restore();
+}
+
 function drawPlayer(){
     const t = performance.now()/1000;
     const bob = Math.sin(t*7)*1.5;
@@ -1019,6 +1242,18 @@ function drawPlayer(){
     ctx.save();
     ctx.translate(player.x - camera.x, player.y - camera.y + bob);
 
+    // Photo-style health display above the hero: level + numeric HP + yellow bar
+    const hpRatio = Math.max(0, Math.min(1, player.hp / Math.max(1, player.maxHp)));
+    ctx.fillStyle = "rgba(8,10,16,.82)";
+    ctx.roundRect(-39, -77, 78, 20, 5); ctx.fill();
+    ctx.fillStyle = "#facc15"; ctx.font = "900 8px Arial"; ctx.textAlign = "left";
+    ctx.fillText(String(player.level), -34, -64);
+    ctx.fillStyle = "#fff"; ctx.font = "900 8px Arial"; ctx.textAlign = "center";
+    ctx.fillText(Math.ceil(player.hp) + " / " + Math.ceil(player.maxHp), 5, -64);
+    ctx.fillStyle = "#202020"; ctx.fillRect(-27, -58, 54, 6);
+    ctx.fillStyle = hpRatio > .5 ? "#ffd52e" : hpRatio > .25 ? "#ff9f1a" : "#ef4444";
+    ctx.fillRect(-27, -58, 54 * hpRatio, 6);
+    ctx.strokeStyle = "#111"; ctx.lineWidth = 1; ctx.strokeRect(-27, -58, 54, 6);
     ctx.fillStyle = "rgba(0,0,0,.38)";
     ctx.beginPath(); ctx.ellipse(0, 29, 24, 7, 0, 0, Math.PI*2); ctx.fill();
 
@@ -1071,6 +1306,11 @@ function drawMonster(m){
     ctx.save();
     ctx.translate(m.x - camera.x, m.y - camera.y + bob);
 
+    if(m.isBoss){
+        drawHealthBar(0, -r-34, 125, m.hp, m.maxHp, true);
+        ctx.fillStyle = "#fff"; ctx.font = "900 11px Arial"; ctx.textAlign = "center";
+        ctx.fillText("BOSS • STAGE " + stage, 0, -r-42);
+    }
     ctx.fillStyle = "rgba(0,0,0,.42)";
     ctx.beginPath(); ctx.ellipse(0, r+7, r*1.05, 7, 0, 0, Math.PI*2); ctx.fill();
 
@@ -1177,9 +1417,15 @@ function updateHUD(){
     document.getElementById("stage").textContent = stage;
     document.getElementById("kills").textContent = kills;
     document.getElementById("gemsCount").textContent = xpGems.length;
-    const progress = Math.max(0, Math.min(100, player.xp / (player.level * 100) * 100));
-    document.getElementById("stageProgressBar").style.width = progress + "%";
-    const sec = Math.floor((performance.now() - gameStartTime) / 1000), m = Math.floor(sec / 60), ss = String(sec % 60).padStart(2, "0");
+    let progress = 0;
+    if(stagePhase === "prep") progress = Math.min(55, stageElapsed()/STAGE_PREP_TIME*55);
+    else if(stagePhase === "warning") progress = 55 + Math.min(5, stageElapsed()/WARNING_TIME*5);
+    else if(stagePhase === "swarm") progress = 60 + Math.min(30, stageElapsed()/SWARM_TIME*30);
+    else if(stagePhase === "boss" && boss) progress = 90 + (1 - boss.hp/boss.maxHp)*10;
+    else if(stagePhase === "complete") progress = 100;
+    document.getElementById("stageProgressBar").style.width = Math.max(0,Math.min(100,progress)) + "%";
+
+    const sec = Math.floor(stageElapsed() / 1000), m = Math.floor(sec / 60), ss = String(sec % 60).padStart(2, "0");
     document.getElementById("gameTimer").textContent = m + ":" + ss;
 
     const slots = document.getElementById("skillSlots");
@@ -1222,6 +1468,14 @@ function showMessage(text){
    UI EVENTS
 ========================= */
 document.getElementById("skillButton").onclick = () => { renderBook(); document.getElementById("bookOverlay").style.display = "block"; };
+function launchStageFromLobby(e){
+    if(e) e.preventDefault();
+    if(gameStarted) return;
+    startStage(1);
+}
+const stageLaunchButton = document.getElementById("stageLaunch");
+stageLaunchButton.addEventListener("click", launchStageFromLobby);
+stageLaunchButton.addEventListener("pointerup", launchStageFromLobby);
 document.getElementById("closeSkill").onclick = () => { document.getElementById("skillPanel").style.display = "none"; canvas.focus(); };
 document.getElementById("closeBook").onclick = () => { document.getElementById("bookOverlay").style.display = "none"; canvas.focus(); };
 
@@ -1247,22 +1501,26 @@ function renderBook(){
 ========================= */
 function gameLoop(){
     if(player.dead){
-        drawBackground(); drawXpGems(); drawEffects(); drawProjectiles(); drawParticles();
+        drawBackground(); drawBarrier(); drawXpGems(); drawEffects(); drawProjectiles(); drawParticles();
         for(const m of monsters) drawMonster(m);
         drawPickupCard(); drawPlayer(); drawTexts(); updateHUD();
+        requestAnimationFrame(gameLoop);
         return;
     }
 
-    movePlayer();
-    if(!choiceOpen){
-        moveMonsters(); autoAttack(); automaticSkill(); updateProjectiles();
-        updateParticles(); updateEffects(); updateTexts(); updateXpGems();
-        maintainMonsters(); checkSkillPickup();
-    } else {
-        updateParticles(); updateEffects(); updateTexts();
+    if(gameStarted){
+        movePlayer();
+        if(!choiceOpen){
+            updateStageFlow();
+            moveMonsters(); autoAttack(); automaticSkill(); updateProjectiles();
+            updateParticles(); updateEffects(); updateTexts(); updateXpGems();
+            checkSkillPickup();
+        } else {
+            updateParticles(); updateEffects(); updateTexts();
+        }
     }
 
-    drawBackground(); drawXpGems(); drawEffects(); drawProjectiles(); drawParticles();
+    drawBackground(); drawBarrier(); drawXpGems(); drawEffects(); drawProjectiles(); drawParticles();
     for(const m of monsters) drawMonster(m);
     drawPickupCard(); drawPlayer(); drawTexts(); updateHUD();
 
@@ -1270,12 +1528,20 @@ function gameLoop(){
 }
 
 /* =========================
-   START GAME
+   START IN LOBBY
 ========================= */
 resize();
 gameStartTime = performance.now();
-pickupCard = {active: true, x: WORLD_W/2, y: WORLD_H/2 - 115, pulse: 0};
-for(let i=0; i<5; i++) createMonster();
+player.x = WORLD_W/2; player.y = WORLD_H/2;
+gameStarted = false;
+stagePhase = "lobby";
+stage = 1;
+monsters = [];
+boss = null;
+barrier = null;
+pickupCard = {active:false, x:WORLD_W/2, y:WORLD_H/2 - 115, pulse:0};
+document.getElementById("lobbyOverlay").style.display = "flex";
+document.getElementById("stageLaunch").querySelector(".num").textContent = "001";
 updateSkillUI(); updateHUD();
 canvas.focus();
 gameLoop();
