@@ -1,641 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Element RPG - Telegram WebApp</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            margin: 0;
-            padding: 0;
-        }
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #111;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff;
-        }
-        #gameCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        /* HUD UI */
-        #hud {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 5;
-        }
-        .bar-container {
-            width: 100%;
-            height: 14px;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 7px;
-            overflow: hidden;
-            position: relative;
-        }
-        .bar-fill {
-            height: 100%;
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-        #hpFill { background: linear-gradient(90deg, #e74c3c, #ff6b6b); }
-        #xpFill { background: linear-gradient(90deg, #2ecc71, #1abc9c); }
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            font-weight: bold;
-            text-shadow: 1px 1px 3px #000;
-        }
-        /* Overlays */
-        .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-        .hidden { display: none !important; }
-        .btn {
-            background: linear-gradient(135deg, #e67e22, #d35400);
-            border: none;
-            color: #fff;
-            padding: 12px 24px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            margin-top: 15px;
-        }
-        .btn:active { transform: scale(0.95); }
-        /* Skill Cards Popup */
-        .card-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 80%;
-            max-width: 320px;
-        }
-        .card {
-            background: #2c3e50;
-            border: 2px solid #f1c40f;
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-        }
-        .card h3 { color: #f1c40f; margin-bottom: 4px; font-size: 16px; }
-        .card p { font-size: 12px; color: #bdc3c7; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>map() vs forEach() Demo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f6;
+      padding: 30px;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      color: #007bff;
+    }
+    code {
+      background: #eef1f6;
+      padding: 3px 6px;
+      border-radius: 4px;
+      color: #d63384;
+    }
+    .output {
+      font-weight: bold;
+      color: #28a745;
+    }
+  </style>
 </head>
 <body>
 
-    <canvas id="gameCanvas"></canvas>
+  <div class="container">
+    <h1>JavaScript Array Methods</h1>
+    
+    <p>Original Array: <code>[10, 20, 30, 40]</code></p>
 
-    <!-- HUD -->
-    <div id="hud">
-        <div class="stats-row">
-            <span id="lvlText">LVL 1</span>
-            <span id="waveText">PREP PHASE</span>
-            <span id="killsText">KILLS: 0</span>
-        </div>
-        <div class="bar-container"><div id="hpFill" class="bar-fill" style="width: 100%;"></div></div>
-        <div class="bar-container"><div id="xpFill" class="bar-fill" style="width: 0%;"></div></div>
+    <!-- map() Output Card -->
+    <div class="card">
+      <h2>1. map() Demo</h2>
+      <p>Naya transformed array return karta hai:</p>
+      <div class="output" id="map-output"></div>
     </div>
 
-    <!-- Lobby Overlay -->
-    <div id="lobbyOverlay" class="overlay">
-        <h1 style="color: #f39c12; font-size: 32px; margin-bottom: 10px;">ELEMENT RPG</h1>
-        <p style="color: #aaa; margin-bottom: 20px;">Survival Mode</p>
-        <button id="startBtn" class="btn">TAP TO START</button>
+    <!-- forEach() Output Card -->
+    <div class="card">
+      <h2>2. forEach() Demo</h2>
+      <p>Har element par loop chalakar action perform karta hai:</p>
+      <div class="output" id="foreach-output"></div>
     </div>
+  </div>
 
-    <!-- Level Up / Skill Choice Overlay -->
-    <div id="skillOverlay" class="overlay hidden">
-        <h2 style="color: #f1c40f; margin-bottom: 15px;">CHOOSE AN UPGRADE</h2>
-        <div id="cardContainer" class="card-container"></div>
-    </div>
+  <script>
+    const numbers = [10, 20, 30, 40];
 
-<script>
-    // Telegram WebApp Init
-    if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-    }
+    // 1. map() Example: Returns a new array with doubled values
+    const doubledArray = numbers.map(num => num * 2);
+    document.getElementById('map-output').innerText = `New Array: [${doubledArray.join(', ')}]`;
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // Game Variables
-    let gameState = 'LOBBY';
-    let kills = 0;
-    let coins = 0;
-    let stageTime = 0;
-
-    // Input Handling
-    const keys = {};
-    let touchStart = null;
-    let touchCurrent = null;
-
-    window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-    window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-
-    canvas.addEventListener('touchstart', e => {
-        touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        touchCurrent = { ...touchStart };
+    // 2. forEach() Example: Iterates and performs side effects (DOM manipulation)
+    const foreachDiv = document.getElementById('foreach-output');
+    numbers.forEach((num, index) => {
+      foreachDiv.innerHTML += `Index ${index}: ${num} x 2 = ${num * 2}<br>`;
     });
-    canvas.addEventListener('touchmove', e => {
-        if (touchStart) {
-            touchCurrent = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        }
-    });
-    canvas.addEventListener('touchend', () => {
-        touchStart = null;
-        touchCurrent = null;
-    });
+  </script>
 
-    // Player Object
-    const player = {
-        x: 1300,
-        y: 2100,
-        radius: 20,
-        speed: 3.5,
-        hp: 100,
-        maxHp: 100,
-        level: 1,
-        xp: 0,
-        nextXp: 10,
-        angle: 0,
-        attackTimer: 0
-    };
-
-    // Arrays
-    let enemies = [];
-    let projectiles = [];
-    let particles = [];
-    let gems = [];
-
-    // REALISTIC SPRITE DRAWINGS
-    function drawHero(ctx, x, y, radius, angle) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-        ctx.beginPath();
-        ctx.ellipse(0, radius * 0.8, radius * 0.9, radius * 0.4, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.rotate(angle);
-
-        // Cape
-        ctx.fillStyle = "#8b0000";
-        ctx.beginPath();
-        ctx.moveTo(-radius * 0.6, -radius * 0.2);
-        ctx.lineTo(-radius * 1.1, 0);
-        ctx.lineTo(-radius * 0.6, radius * 0.2);
-        ctx.closePath();
-        ctx.fill();
-
-        // Armor
-        ctx.fillStyle = "#2c3e50";
-        ctx.beginPath();
-        ctx.arc(0, 0, radius * 0.75, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Shoulder Guards
-        ctx.fillStyle = "#7f8c8d";
-        ctx.beginPath();
-        ctx.arc(0, -radius * 0.6, radius * 0.35, 0, Math.PI * 2);
-        ctx.arc(0, radius * 0.6, radius * 0.35, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Helmet
-        ctx.fillStyle = "#bdc3c7";
-        ctx.beginPath();
-        ctx.arc(radius * 0.2, 0, radius * 0.45, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Glowing Eyes
-        ctx.fillStyle = "#00d2d3";
-        ctx.fillRect(radius * 0.35, -radius * 0.15, radius * 0.15, radius * 0.1);
-        ctx.fillRect(radius * 0.35, radius * 0.05, radius * 0.15, radius * 0.1);
-
-        // Sword
-        ctx.strokeStyle = "#ecf0f1";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(radius * 0.4, radius * 0.5);
-        ctx.lineTo(radius * 1.4, radius * 0.5);
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-    function drawWolf(ctx, x, y, radius, angle) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(angle);
-
-        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-        ctx.beginPath();
-        ctx.ellipse(0, 0, radius * 1.1, radius * 0.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#34495e";
-        ctx.beginPath();
-        ctx.ellipse(-radius * 0.2, 0, radius * 0.8, radius * 0.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#2c3e50";
-        ctx.beginPath();
-        ctx.moveTo(radius * 0.3, -radius * 0.25);
-        ctx.lineTo(radius * 0.9, 0);
-        ctx.lineTo(radius * 0.3, radius * 0.25);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#1a252f";
-        ctx.beginPath();
-        ctx.moveTo(-radius * 0.1, -radius * 0.4);
-        ctx.lineTo(radius * 0.1, -radius * 0.8);
-        ctx.lineTo(radius * 0.3, -radius * 0.3);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(-radius * 0.1, radius * 0.4);
-        ctx.lineTo(radius * 0.1, radius * 0.8);
-        ctx.lineTo(radius * 0.3, radius * 0.3);
-        ctx.fill();
-
-        ctx.fillStyle = "#ff4d4d";
-        ctx.beginPath();
-        ctx.arc(radius * 0.4, -radius * 0.2, radius * 0.1, 0, Math.PI * 2);
-        ctx.arc(radius * 0.4, radius * 0.2, radius * 0.1, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore();
-    }
-
-    function drawGoblin(ctx, x, y, radius, angle) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(angle);
-
-        ctx.fillStyle = "rgba(0,0,0,0.3)";
-        ctx.beginPath();
-        ctx.ellipse(0, radius * 0.2, radius * 0.7, radius * 0.3, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#5d4037";
-        ctx.beginPath();
-        ctx.arc(0, 0, radius * 0.65, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#27ae60";
-        ctx.beginPath();
-        ctx.arc(radius * 0.2, 0, radius * 0.45, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#1e8449";
-        ctx.beginPath();
-        ctx.moveTo(0, -radius * 0.3);
-        ctx.lineTo(radius * 0.1, -radius * 0.85);
-        ctx.lineTo(radius * 0.3, -radius * 0.3);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(0, radius * 0.3);
-        ctx.lineTo(radius * 0.1, radius * 0.85);
-        ctx.lineTo(radius * 0.3, radius * 0.3);
-        ctx.fill();
-
-        ctx.fillStyle = "#f1c40f";
-        ctx.beginPath();
-        ctx.arc(radius * 0.35, -radius * 0.15, radius * 0.08, 0, Math.PI * 2);
-        ctx.arc(radius * 0.35, radius * 0.15, radius * 0.08, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = "#95a5a6";
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(radius * 0.3, radius * 0.4);
-        ctx.lineTo(radius * 0.9, radius * 0.5);
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-    function drawMonsterHand(ctx, x, y, radius, angle) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(angle);
-
-        ctx.fillStyle = "#4a235a";
-        ctx.beginPath();
-        ctx.ellipse(-radius * 0.2, 0, radius * 0.5, radius * 0.4, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = "#5b2c6f";
-        ctx.lineWidth = radius * 0.18;
-        ctx.lineCap = "round";
-
-        let fingerAngles = [-0.4, -0.15, 0.15, 0.4];
-        fingerAngles.forEach(fAngle => {
-            ctx.save();
-            ctx.rotate(fAngle);
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(radius * 0.85, 0);
-            ctx.stroke();
-
-            ctx.fillStyle = "#e74c3c";
-            ctx.beginPath();
-            ctx.moveTo(radius * 0.8, -radius * 0.08);
-            ctx.lineTo(radius * 1.15, 0);
-            ctx.lineTo(radius * 0.8, radius * 0.08);
-            ctx.fill();
-            ctx.restore();
-        });
-
-        ctx.restore();
-    }
-
-    // Spawning Enemies
-    function spawnEnemy() {
-        if (enemies.length > 60) return;
-        const types = ['wolf', 'goblin', 'monster_hand'];
-        const chosenType = types[Math.floor(Math.random() * types.length)];
-        
-        const angle = Math.random() * Math.PI * 2;
-        const dist = Math.max(canvas.width, canvas.height) / 2 + 50;
-
-        let radius = 18;
-        let hp = 20;
-        let speed = 2;
-
-        if (chosenType === 'wolf') { speed = 2.8; hp = 15; radius = 16; }
-        else if (chosenType === 'goblin') { speed = 2.1; hp = 25; radius = 18; }
-        else if (chosenType === 'monster_hand') { speed = 1.4; hp = 45; radius = 22; }
-
-        enemies.push({
-            x: player.x + Math.cos(angle) * dist,
-            y: player.y + Math.sin(angle) * dist,
-            type: chosenType,
-            radius: radius,
-            hp: hp,
-            maxHp: hp,
-            speed: speed
-        });
-    }
-
-    // Controls Update
-    function updatePlayer() {
-        let dx = 0;
-        let dy = 0;
-
-        if (keys['w'] || keys['arrowup']) dy -= 1;
-        if (keys['s'] || keys['arrowdown']) dy += 1;
-        if (keys['a'] || keys['arrowleft']) dx -= 1;
-        if (keys['d'] || keys['arrowright']) dx += 1;
-
-        if (touchStart && touchCurrent) {
-            dx = touchCurrent.x - touchStart.x;
-            dy = touchCurrent.y - touchStart.y;
-        }
-
-        if (dx !== 0 || dy !== 0) {
-            const mag = Math.hypot(dx, dy);
-            const moveX = (dx / mag) * player.speed;
-            const moveY = (dy / mag) * player.speed;
-            player.x += moveX;
-            player.y += moveY;
-            player.angle = Math.atan2(dy, dx);
-        }
-
-        // Auto Attack Nearest Enemy
-        player.attackTimer++;
-        if (player.attackTimer > 25 && enemies.length > 0) {
-            let nearest = null;
-            let minDst = Infinity;
-            enemies.forEach(e => {
-                let d = Math.hypot(e.x - player.x, e.y - player.y);
-                if (d < minDst) { minDst = d; nearest = e; }
-            });
-
-            if (nearest && minDst < 400) {
-                let pAngle = Math.atan2(nearest.y - player.y, nearest.x - player.x);
-                projectiles.push({
-                    x: player.x,
-                    y: player.y,
-                    vx: Math.cos(pAngle) * 7,
-                    vy: Math.sin(pAngle) * 7,
-                    radius: 5,
-                    damage: 15
-                });
-                player.attackTimer = 0;
-            }
-        }
-    }
-
-    function updateGame() {
-        if (gameState !== 'PLAYING') return;
-
-        stageTime += 1 / 60;
-        if (Math.random() < 0.05) spawnEnemy();
-
-        updatePlayer();
-
-        // Projectiles
-        for (let i = projectiles.length - 1; i >= 0; i--) {
-            let p = projectiles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-
-            // Check collision with enemies
-            for (let j = enemies.length - 1; j >= 0; j--) {
-                let e = enemies[j];
-                if (Math.hypot(e.x - p.x, e.y - p.y) < e.radius + p.radius) {
-                    e.hp -= p.damage;
-                    projectiles.splice(i, 1);
-                    if (e.hp <= 0) {
-                        kills++;
-                        gems.push({ x: e.x, y: e.y, value: 5 });
-                        enemies.splice(j, 1);
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Enemies logic
-        enemies.forEach(e => {
-            let angle = Math.atan2(player.y - e.y, player.x - e.x);
-            e.x += Math.cos(angle) * e.speed;
-            e.y += Math.sin(angle) * e.speed;
-
-            // Collision with Player
-            if (Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
-                player.hp -= 0.3;
-                if (player.hp <= 0) {
-                    alert("Game Over! Kills: " + kills);
-                    document.location.reload();
-                }
-            }
-        });
-
-        // Collect Gems
-        for (let i = gems.length - 1; i >= 0; i--) {
-            let g = gems[i];
-            if (Math.hypot(player.x - g.x, player.y - g.y) < player.radius + 30) {
-                player.xp += g.value;
-                gems.splice(i, 1);
-                if (player.xp >= player.nextXp) {
-                    player.level++;
-                    player.xp = 0;
-                    player.nextXp = Math.floor(player.nextXp * 1.5);
-                    showSkillChoices();
-                }
-            }
-        }
-
-        // Update HUD UI
-        document.getElementById('hpFill').style.width = Math.max(0, (player.hp / player.maxHp) * 100) + '%';
-        document.getElementById('xpFill').style.width = (player.xp / player.nextXp) * 100 + '%';
-        document.getElementById('lvlText').innerText = 'LVL ' + player.level;
-        document.getElementById('killsText').innerText = 'KILLS: ' + kills;
-    }
-
-    function render() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Camera follow
-        ctx.save();
-        ctx.translate(canvas.width / 2 - player.x, canvas.height / 2 - player.y);
-
-        // Background Grid
-        ctx.strokeStyle = "#222";
-        ctx.lineWidth = 2;
-        const gridSize = 80;
-        for (let x = player.x - canvas.width; x < player.x + canvas.width; x += gridSize) {
-            let gx = Math.floor(x / gridSize) * gridSize;
-            ctx.beginPath(); ctx.moveTo(gx, player.y - canvas.height); ctx.lineTo(gx, player.y + canvas.height); ctx.stroke();
-        }
-        for (let y = player.y - canvas.height; y < player.y + canvas.height; y += gridSize) {
-            let gy = Math.floor(y / gridSize) * gridSize;
-            ctx.beginPath(); ctx.moveTo(player.x - canvas.width, gy); ctx.lineTo(player.x + canvas.width, gy); ctx.stroke();
-        }
-
-        // Render Gems
-        gems.forEach(g => {
-            ctx.fillStyle = '#2ecc71';
-            ctx.beginPath();
-            ctx.arc(g.x, g.y, 4, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // Render Projectiles
-        projectiles.forEach(p => {
-            ctx.fillStyle = '#f39c12';
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // Render Enemies
-        enemies.forEach(e => {
-            let angle = Math.atan2(player.y - e.y, player.x - e.x);
-            if (e.type === 'wolf') drawWolf(ctx, e.x, e.y, e.radius, angle);
-            else if (e.type === 'goblin') drawGoblin(ctx, e.x, e.y, e.radius, angle);
-            else if (e.type === 'monster_hand') drawMonsterHand(ctx, e.x, e.y, e.radius, angle);
-        });
-
-        // Render Player
-        drawHero(ctx, player.x, player.y, player.radius, player.angle);
-
-        ctx.restore();
-
-        // Render Touch Joystick visual
-        if (touchStart && touchCurrent) {
-            ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-            ctx.beginPath();
-            ctx.arc(touchStart.x, touchStart.y, 40, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-            ctx.beginPath();
-            ctx.arc(touchCurrent.x, touchCurrent.y, 20, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
-    function gameLoop() {
-        updateGame();
-        render();
-        requestAnimationFrame(gameLoop);
-    }
-
-    // UI Overlay Handlers
-    document.getElementById('startBtn').addEventListener('click', () => {
-        document.getElementById('lobbyOverlay').classList.add('hidden');
-        gameState = 'PLAYING';
-    });
-
-    function showSkillChoices() {
-        gameState = 'PAUSED';
-        const cardContainer = document.getElementById('cardContainer');
-        cardContainer.innerHTML = '';
-
-        const upgrades = [
-            { title: "Damage Up", desc: "Increases attack damage by 20%" },
-            { title: "Speed Boost", desc: "Increases movement speed" },
-            { title: "Heal", desc: "Restores 50% HP" }
-        ];
-
-        upgrades.forEach(up => {
-            let card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `<h3>${up.title}</h3><p>${up.desc}</p>`;
-            card.onclick = () => {
-                if (up.title === "Damage Up") player.attackTimer -= 5;
-                if (up.title === "Speed Boost") player.speed += 0.5;
-                if (up.title === "Heal") player.hp = Math.min(player.maxHp, player.hp + 50);
-
-                document.getElementById('skillOverlay').classList.add('hidden');
-                gameState = 'PLAYING';
-            };
-            cardContainer.appendChild(card);
-        });
-
-        document.getElementById('skillOverlay').classList.remove('hidden');
-    }
-
-    // Start Loop
-    requestAnimationFrame(gameLoop);
-</script>
 </body>
 </html>
